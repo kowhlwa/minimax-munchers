@@ -1,5 +1,11 @@
-Mandatory Set-up:
+# Mandatory Set-up:
+## File downloads
+1. Navigate to https://drive.google.com/drive/folders/1TzzlKlM2wT8nvdzCBMrqZJGEs-V1wzsh.
+2. Download the Bytefight Client 2026, Client Terminal, Player showcase folders.
+3. Unzip them in the root of this repo
+4. Place the unzipped player showcase folder inside of the _player_files_ folder.
 
+## Environment Set-up
 1. Install Python (if you do not have it)
     - Note: ensure python is 3.10 <= version < 3.14
     - I used `brew upgrade python`
@@ -15,7 +21,8 @@ Mandatory Set-up:
 
 Game is now set-up, now you have two options to play/test: GUI and terminal
 
-GUI:
+
+### GUI:
 1. Copy virtual environment python path from `which python`
 1. In order for Mac to run this app, run `xattr -dr com.apple.quarantine "Bytefight Client 2026.app"`.
 2. Open _Bytefight Client 2026.app_
@@ -24,6 +31,7 @@ GUI:
 5. When adding your own player/bot file, add the directory within the player_files/bots directory, and ensure that your
 player subdirectory contains an \__init__.py, controller.py, and player_board.py
 
-Terminal:
+### Terminal:
 1. Ensure virtual environment is activated
 2. Follow player_files/docs/instructions/installation.md
+unfinished
