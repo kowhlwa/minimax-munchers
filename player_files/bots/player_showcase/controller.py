@@ -34,9 +34,13 @@ class PlayerController:
         # ---- Pre-compute BFS distances from current position ----
         distances = self._bfs_all_distances(board, player.loc, player_parity)
 
-        # Hill-rush mode: skip pre-move painting to reach hills faster.
-        # Once we own at least one hill (or there are no hills) paint normally.
-        hill_rush = len(board.hills) > 0 and len(player.controlled_hills) == 0
+        # Hill-rush mode: skip pre-move painting while TRAVELLING to the hill.
+        # Once we're on/adjacent to a hill cell, switch to full-paint so we
+        # sweep and capture the hill rather than oscillating past it.
+        # Once any hill is captured, always use full-paint mode.
+        needs_hill = len(board.hills) > 0 and len(player.controlled_hills) == 0
+        in_hill_area = self._in_hill_area(board, player.loc)
+        hill_rush = needs_hill and not in_hill_area
 
         # ---- Paint phase 1: paint neighbours of current position ----
         painted: Set[Location] = set()
@@ -224,7 +228,10 @@ class PlayerController:
 
             if cell.hill_id != 0:
                 hill = board.hills[cell.hill_id]
-                if hill.controller_parity != player_parity:
+                # Only target unpainted hill cells — skipping already-painted ones
+                # prevents oscillation between cells we can't paint (our current pos)
+                # and cells we've already claimed.
+                if hill.controller_parity != player_parity and cell.owner_parity != player_parity:
                     score = hill_base - dist * 2.0
 
             elif cell.powerup:
@@ -334,6 +341,18 @@ class PlayerController:
             if not board.cells[nxt.r][nxt.c].is_wall:
                 return Action.Move(direction)
         return None
+
+    def _in_hill_area(self, board: Board, loc: Location) -> bool:
+        """True if loc is on a hill cell or directly adjacent to one."""
+        if board.cells[loc.r][loc.c].hill_id != 0:
+            return True
+        for direction in Direction.cardinals():
+            neighbor = loc + direction
+            if board.oob(neighbor):
+                continue
+            if board.cells[neighbor.r][neighbor.c].hill_id != 0:
+                return True
+        return False
 
     def commentate(self, board: Board, player_parity: int, time_left: Callable) -> str:
         player = board.get_player(player_parity)
