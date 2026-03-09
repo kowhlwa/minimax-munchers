@@ -34,10 +34,15 @@ class PlayerController:
         # ---- Pre-compute BFS distances from current position ----
         distances = self._bfs_all_distances(board, player.loc, player_parity)
 
+        # Hill-rush mode: skip pre-move painting to reach hills faster.
+        # Once we own at least one hill (or there are no hills) paint normally.
+        hill_rush = len(board.hills) > 0 and len(player.controlled_hills) == 0
+
         # ---- Paint phase 1: paint neighbours of current position ----
         painted: Set[Location] = set()
-        actions, stamina = self._greedy_paint(board, player_parity, player.loc,
-                                               painted, actions, stamina)
+        if not hill_rush:
+            actions, stamina = self._greedy_paint(board, player_parity, player.loc,
+                                                   painted, actions, stamina)
 
         # ---- Move phase ----
         target = self._choose_target(board, player_parity, distances)
@@ -156,7 +161,9 @@ class PlayerController:
         """
         BFS from `start` to every reachable cell.
         Returns {Location: steps} for all reachable, non-wall cells.
-        Avoids the opponent's cell if they own it (collision death).
+        Avoids the opponent's current position unless WE own that cell
+        (moving onto neutral/opponent-owned cell where they stand = we die on their
+        next turn via collision resolution).
         """
         opponent = board.get_opponent(player_parity)
         distances: Dict[Location, int] = {start: 0}
@@ -171,7 +178,9 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opponent.loc and cell.owner_parity == -player_parity:
+                # Only safe to step on opponent's position if WE own the cell
+                # (guarantees we win the collision). Neutral or opponent-owned = we die.
+                if nxt == opponent.loc and cell.owner_parity != player_parity:
                     continue
                 distances[nxt] = d + 1
                 queue.append((nxt, d + 1))
@@ -192,13 +201,17 @@ class PlayerController:
         Score every reachable cell using actual BFS distances.
 
         Scoring table (dist = BFS steps):
-          Powerup                           : 100 - dist
-          Hill cell (hill not ours)         :  80 - dist * 1.5
-          Neutral adjacent to our territory :  25 - dist * 2
-          Any neutral cell                  :  10 - dist * 2
-          Opponent cell (free erosion)      :   5 - dist * 3
+          Hill cell (hill not ours, no hills captured yet) : 200 - dist * 2
+          Hill cell (hill not ours, we have some hills)    : 150 - dist * 2
+          Powerup                                          : 100 - dist
+          Neutral adjacent to our territory                :  25 - dist * 2
+          Any neutral cell                                 :  10 - dist * 2
+          Opponent cell (free erosion)                     :   5 - dist * 3
         """
         player = board.get_player(player_parity)
+        no_hills_yet = len(board.hills) > 0 and len(player.controlled_hills) == 0
+        hill_base = 200.0 if no_hills_yet else 150.0
+
         best_target: Optional[Location] = None
         best_score: float = -9999.0
 
@@ -209,13 +222,13 @@ class PlayerController:
 
             score: float = 0.0
 
-            if cell.powerup:
-                score = 100.0 - dist
-
-            elif cell.hill_id != 0:
+            if cell.hill_id != 0:
                 hill = board.hills[cell.hill_id]
                 if hill.controller_parity != player_parity:
-                    score = 80.0 - dist * 1.5
+                    score = hill_base - dist * 2.0
+
+            elif cell.powerup:
+                score = 100.0 - dist
 
             elif cell.owner_parity == 0:
                 if self._adjacent_to_friendly(board, loc, player_parity):
@@ -262,7 +275,7 @@ class PlayerController:
             cell = board.cells[nxt.r][nxt.c]
             if cell.is_wall:
                 continue
-            if nxt == opponent.loc and cell.owner_parity == -player_parity:
+            if nxt == opponent.loc and cell.owner_parity != player_parity:
                 continue
             visited.add(nxt)
             queue.append((nxt, direction))
@@ -278,7 +291,7 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opponent.loc and cell.owner_parity == -player_parity:
+                if nxt == opponent.loc and cell.owner_parity != player_parity:
                     continue
                 visited.add(nxt)
                 queue.append((nxt, first_dir))
