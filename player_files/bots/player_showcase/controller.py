@@ -243,8 +243,6 @@ class PlayerController:
                 else:
                     score = 10.0 - dist * 2.0
 
-            elif cell.owner_parity == -player_parity:
-                score = 5.0 - dist * 3.0
 
             if score > best_score:
                 best_score = score
@@ -334,12 +332,17 @@ class PlayerController:
 
     def _any_valid_move(self, board: Board, player_parity: int) -> Optional[Action.Move]:
         player = board.get_player(player_parity)
+        opponent = board.get_opponent(player_parity)
         for direction in Direction.cardinals():
             nxt = player.loc + direction
             if board.oob(nxt):
                 continue
-            if not board.cells[nxt.r][nxt.c].is_wall:
-                return Action.Move(direction)
+            cell = board.cells[nxt.r][nxt.c]
+            if cell.is_wall:
+                continue
+            if nxt == opponent.loc and cell.owner_parity != player_parity:
+                continue
+            return Action.Move(direction)
         return None
 
     def _in_hill_area(self, board: Board, loc: Location) -> bool:
