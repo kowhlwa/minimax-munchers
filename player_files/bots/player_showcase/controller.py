@@ -1,22 +1,34 @@
 from collections import deque
 from collections.abc import Callable, Iterable
-from typing import Union, Optional, Set, Dict
+from typing import Union, Optional, Set, Dict, List, Tuple
 
 from game import *
+
+DANGER_STRICT = 3
+DANGER_MODERATE = 1
 
 
 class PlayerController:
     """
-    HillRusher v4:
-    - Collision avoidance based on actual engine mechanics:
-      * Never step onto opponent unless cell is ours (kill)
-      * Avoid opponent territory near opponent (they can step onto us and win)
-      * Expanded danger zone (radius 3) to account for multi-move
-    - Offensive kills (step onto opponent when they're on our cell)
-    - Multi-move when traveling far (2nd step for 10 stamina)
-    - Per-hill scoring (size, contestedness, distance)
-    - Hill defense (retarget our hills under attack)
-    - Greedy multi-paint before AND after each move
+    HillRusher v5 — collision-hardened.
+
+    Collision model (from engine board.py):
+      _resolve_collision fires when both players are already co-located
+      at the START of a move. The cell owner wins; on neutral the
+      "moving_player" (whose turn triggers the check) wins.
+      Because turns alternate, the player who WALKED IN is always the
+      one whose opponent gets the next move trigger. Result:
+        - Walking onto someone: you win only on YOUR cells.
+        - Being walked onto: you win on your cells AND neutral.
+        - You ALWAYS lose if on opponent territory during collision.
+
+    Key defenses:
+      1. Escape mode: if currently on opponent territory near opponent, flee.
+      2. Tiered BFS: strict(3) → moderate(1) → path-only(0) fallback.
+         First step ALWAYS gets at least moderate danger check.
+      3. Paint-thickness awareness: stepping onto opponent paint ≥2 still
+         leaves us on enemy turf → treated as dangerous.
+      4. _any_valid_move uses danger scoring so fallback moves are safe.
     """
 
     def __init__(self, player_parity: int, time_left: Callable):
@@ -33,6 +45,7 @@ class PlayerController:
     ) -> Union[Action.Move, Action.Paint, Iterable[Action.Move | Action.Paint]]:
         player = board.get_player(player_parity)
         opponent = board.get_opponent(player_parity)
+        opp_loc = opponent.loc
         actions: list = []
         stamina = player.stamina
 
@@ -44,6 +57,19 @@ class PlayerController:
                 board, player_parity, new_pos, set(), actions, stamina
             )
             return actions
+
+        # ---- ESCAPE MODE ----
+        cur_cell = board.cells[player.loc.r][player.loc.c]
+        dist_to_opp = abs(player.loc.r - opp_loc.r) + abs(player.loc.c - opp_loc.c)
+        if cur_cell.owner_parity == -player_parity and dist_to_opp <= 4:
+            escape_dir = self._escape_step(board, player.loc, player_parity)
+            if escape_dir:
+                actions.append(Action.Move(escape_dir))
+                new_pos = player.loc + escape_dir
+                actions, stamina = self._greedy_paint(
+                    board, player_parity, new_pos, set(), actions, stamina, buffer=40
+                )
+                return actions
 
         distances = self._bfs_all_distances(board, player.loc, player_parity)
 
@@ -72,7 +98,7 @@ class PlayerController:
                     dir2 = self._safe_step(board, new_pos, target, player_parity)
                     if dir2:
                         dest2 = new_pos + dir2
-                        if not self._would_collide(board, dest2, player_parity):
+                        if not self._is_step_dangerous(board, dest2, player_parity):
                             actions.append(Action.Move(dir2))
                             stamina -= GameConstants.EXTRA_MOVE_COST
 
@@ -94,31 +120,83 @@ class PlayerController:
         return actions
 
     # ------------------------------------------------------------------ #
-    # Collision helpers                                                     #
+    # Danger assessment                                                    #
     # ------------------------------------------------------------------ #
 
-    def _would_collide(
+    def _is_danger(
+        self, board: Board, loc: Location, opp_loc: Location,
+        player_parity: int, radius: int = DANGER_STRICT,
+    ) -> bool:
+        """
+        Is this cell dangerous to stand on?
+        Dangerous = opponent-owned (or will remain opponent-owned after
+        stepping) AND within `radius` manhattan distance of opponent.
+        """
+        cell = board.cells[loc.r][loc.c]
+        is_opp_territory = (cell.owner_parity == -player_parity)
+        if not is_opp_territory:
+            pv = cell.paint_value
+            if player_parity == 1 and pv <= -2:
+                is_opp_territory = True
+            elif player_parity == -1 and pv >= 2:
+                is_opp_territory = True
+        if not is_opp_territory:
+            return False
+        dist = abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c)
+        return dist <= radius
+
+    def _is_step_dangerous(
         self, board: Board, dest: Location, player_parity: int,
     ) -> bool:
-        """Check if moving to dest would cause a losing collision."""
+        if board.oob(dest):
+            return True
         opponent = board.get_opponent(player_parity)
-        if dest != opponent.loc:
-            return False
-        cell = board.cells[dest.r][dest.c]
-        return cell.owner_parity != player_parity
+        return self._is_danger(board, dest, opponent.loc, player_parity, DANGER_MODERATE)
 
-    def _is_danger(
-        self, cell: CellState, loc: Location, opp_loc: Location,
-        player_parity: int,
-    ) -> bool:
-        """
-        Opponent-owned cell within Manhattan distance 3 of opponent.
-        If the opponent steps onto us here, they win (cell is theirs).
-        Radius 3 accounts for opponent multi-move.
-        """
-        if cell.owner_parity != -player_parity:
-            return False
-        return abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 3
+    # ------------------------------------------------------------------ #
+    # Escape                                                               #
+    # ------------------------------------------------------------------ #
+
+    def _escape_step(
+        self, board: Board, start: Location, player_parity: int,
+    ) -> Optional[Direction]:
+        opponent = board.get_opponent(player_parity)
+        opp_loc = opponent.loc
+
+        visited: Set[Location] = {start}
+        queue: deque = deque()
+
+        for direction in Direction.cardinals():
+            nxt = start + direction
+            if board.oob(nxt) or nxt in visited:
+                continue
+            cell = board.cells[nxt.r][nxt.c]
+            if cell.is_wall:
+                continue
+            if nxt == opp_loc:
+                continue
+            visited.add(nxt)
+            if not self._is_danger(board, nxt, opp_loc, player_parity, DANGER_STRICT):
+                return direction
+            queue.append((nxt, direction))
+
+        while queue:
+            loc, first_dir = queue.popleft()
+            for direction in Direction.cardinals():
+                nxt = loc + direction
+                if board.oob(nxt) or nxt in visited:
+                    continue
+                cell = board.cells[nxt.r][nxt.c]
+                if cell.is_wall:
+                    continue
+                if nxt == opp_loc:
+                    continue
+                visited.add(nxt)
+                if not self._is_danger(board, nxt, opp_loc, player_parity, DANGER_STRICT):
+                    return first_dir
+                queue.append((nxt, first_dir))
+
+        return None
 
     # ------------------------------------------------------------------ #
     # Kill detection                                                       #
@@ -338,7 +416,7 @@ class PlayerController:
         return best_target
 
     # ------------------------------------------------------------------ #
-    # Safe pathfinding                                                     #
+    # Safe pathfinding — tiered fallback                                   #
     # ------------------------------------------------------------------ #
 
     def _safe_step(
@@ -347,20 +425,25 @@ class PlayerController:
     ) -> Optional[Direction]:
         if start == target:
             return None
-        result = self._bfs_step(board, start, target, player_parity, avoid_danger=True)
+        result = self._bfs_step(board, start, target, player_parity, danger_radius=DANGER_STRICT)
         if result:
             return result
-        return self._bfs_step(board, start, target, player_parity, avoid_danger=False)
+        result = self._bfs_step(board, start, target, player_parity, danger_radius=DANGER_MODERATE)
+        if result:
+            return result
+        return self._bfs_step(board, start, target, player_parity, danger_radius=0)
 
     def _bfs_step(
         self, board: Board, start: Location, target: Location,
-        player_parity: int, avoid_danger: bool = False,
+        player_parity: int, danger_radius: int = DANGER_STRICT,
     ) -> Optional[Direction]:
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
 
         visited: Set[Location] = {start}
         queue: deque = deque()
+
+        first_step_radius = max(danger_radius, DANGER_MODERATE)
 
         for direction in Direction.cardinals():
             nxt = start + direction
@@ -371,7 +454,7 @@ class PlayerController:
                 continue
             if nxt == opp_loc and cell.owner_parity != player_parity:
                 continue
-            if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
+            if self._is_danger(board, nxt, opp_loc, player_parity, first_step_radius):
                 continue
             visited.add(nxt)
             queue.append((nxt, direction))
@@ -389,7 +472,7 @@ class PlayerController:
                     continue
                 if nxt == opp_loc and cell.owner_parity != player_parity:
                     continue
-                if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
+                if danger_radius > 0 and self._is_danger(board, nxt, opp_loc, player_parity, danger_radius):
                     continue
                 visited.add(nxt)
                 queue.append((nxt, first_dir))
@@ -427,7 +510,6 @@ class PlayerController:
     def _any_valid_move(
         self, board: Board, player_parity: int,
     ) -> Optional[Action.Move]:
-        """Fallback move with collision-aware priority."""
         player = board.get_player(player_parity)
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
@@ -443,15 +525,20 @@ class PlayerController:
             if nxt == opp_loc and cell.owner_parity != player_parity:
                 continue
 
-            danger = self._is_danger(cell, nxt, opp_loc, player_parity)
+            strict_danger = self._is_danger(board, nxt, opp_loc, player_parity, DANGER_STRICT)
+            mod_danger = self._is_danger(board, nxt, opp_loc, player_parity, DANGER_MODERATE)
             friendly = (cell.owner_parity == player_parity)
             neutral = (cell.owner_parity == 0)
 
-            if friendly and not danger:
+            if friendly and not strict_danger:
+                priority = 5
+            elif neutral and not strict_danger:
+                priority = 4
+            elif not mod_danger and friendly:
                 priority = 3
-            elif neutral and not danger:
+            elif not mod_danger:
                 priority = 2
-            elif not danger:
+            elif not strict_danger:
                 priority = 1
             else:
                 priority = 0
