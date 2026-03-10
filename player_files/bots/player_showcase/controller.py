@@ -14,6 +14,7 @@ class PlayerController:
     - Per-hill scoring (size, contestedness, distance)
     - Hill defense (retarget our hills under attack)
     - Greedy multi-paint before AND after each move
+    - Swap-collision avoidance (never step onto opponent's current cell)
     """
 
     def __init__(self, player_parity: int, time_left: Callable):
@@ -33,7 +34,6 @@ class PlayerController:
         actions: list = []
         stamina = player.stamina
 
-        # ---- Instant kill: opponent adjacent on a cell we own ----
         kill_dir = self._check_kill(board, player, opponent, player_parity)
         if kill_dir:
             actions.append(Action.Move(kill_dir))
@@ -43,22 +43,18 @@ class PlayerController:
             )
             return actions
 
-        # ---- Pre-compute BFS distances ----
         distances = self._bfs_all_distances(board, player.loc, player_parity)
 
-        # ---- Mode: rush first hill, full-paint otherwise ----
         needs_hill = len(board.hills) > 0 and len(player.controlled_hills) == 0
         in_hill_area = self._in_hill_area(board, player.loc)
         hill_rush = needs_hill and not in_hill_area
 
-        # ---- Paint phase 1: around current position ----
         painted: Set[Location] = set()
         if not hill_rush:
             actions, stamina = self._greedy_paint(
                 board, player_parity, player.loc, painted, actions, stamina
             )
 
-        # ---- Move phase ----
         target = self._choose_target(board, player_parity, distances)
         moved = False
         if target:
@@ -67,7 +63,6 @@ class PlayerController:
                 actions.append(Action.Move(direction))
                 moved = True
 
-                # Multi-move: 2nd step (costs 10) when target is far
                 target_dist = distances.get(target)
                 if (target_dist is not None and target_dist > 3
                         and stamina >= GameConstants.EXTRA_MOVE_COST + 30):
@@ -77,7 +72,6 @@ class PlayerController:
                         actions.append(Action.Move(dir2))
                         stamina -= GameConstants.EXTRA_MOVE_COST
 
-        # ---- Paint phase 2: around destination ----
         if moved:
             new_pos = self._simulate_position(board, player.loc, actions)
             buf = 40 if hill_rush else 20
@@ -85,7 +79,6 @@ class PlayerController:
                 board, player_parity, new_pos, set(), actions, stamina, buffer=buf
             )
 
-        # ---- Guarantee at least one Move (engine rejects paint-only turns) ----
         has_move = any(isinstance(a, Action.Move) for a in actions)
         if not has_move:
             fallback = self._any_valid_move(board, player_parity)
@@ -96,15 +89,10 @@ class PlayerController:
 
         return actions
 
-    # ------------------------------------------------------------------ #
-    # Kill detection                                                       #
-    # ------------------------------------------------------------------ #
-
     def _check_kill(
         self, board: Board, player: Player, opponent: Player,
         player_parity: int,
     ) -> Optional[Direction]:
-        """Return direction to kill opponent if they're adjacent on our cell."""
         for direction in Direction.cardinals():
             nxt = player.loc + direction
             if board.oob(nxt) or nxt != opponent.loc:
@@ -115,10 +103,6 @@ class PlayerController:
             if cell.owner_parity == player_parity:
                 return direction
         return None
-
-    # ------------------------------------------------------------------ #
-    # Greedy paint                                                         #
-    # ------------------------------------------------------------------ #
 
     def _greedy_paint(
         self,
@@ -177,14 +161,11 @@ class PlayerController:
                 best = target
         return best
 
-    # ------------------------------------------------------------------ #
-    # BFS — full distance map                                              #
-    # ------------------------------------------------------------------ #
-
     def _bfs_all_distances(
         self, board: Board, start: Location, player_parity: int,
     ) -> Dict[Location, int]:
         opponent = board.get_opponent(player_parity)
+        opp_loc = opponent.loc
         distances: Dict[Location, int] = {start: 0}
         queue: deque = deque([(start, 0)])
         while queue:
@@ -196,15 +177,11 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opponent.loc and cell.owner_parity != player_parity:
+                if nxt == opp_loc:
                     continue
                 distances[nxt] = d + 1
                 queue.append((nxt, d + 1))
         return distances
-
-    # ------------------------------------------------------------------ #
-    # Target selection                                                     #
-    # ------------------------------------------------------------------ #
 
     def _choose_target(
         self,
@@ -216,18 +193,16 @@ class PlayerController:
         total_hills = len(board.hills)
         our_hills = len(player.controlled_hills)
 
-        # How badly do we need more hills?
         if our_hills == 0 and total_hills > 0:
             hill_base = 200.0
         elif total_hills > 0 and our_hills < (total_hills * 3 + 3) // 4:
-            hill_base = 170.0  # push for domination
+            hill_base = 170.0
         else:
-            hill_base = 80.0   # already dominating or no hills
+            hill_base = 80.0
 
         best_target: Optional[Location] = None
         best_score: float = -9999.0
 
-        # --- Uncaptured hills (per-hill evaluation) ---
         seen_hills: Set[int] = set()
         for loc, dist in distances.items():
             cell = board.cells[loc.r][loc.c]
@@ -267,7 +242,6 @@ class PlayerController:
                 best_score = score
                 best_target = best_hill_loc
 
-        # --- Hill defense: our hills under attack ---
         for hill_id in player.controlled_hills:
             hill = board.hills[hill_id]
             opp_cells = sum(
@@ -294,7 +268,6 @@ class PlayerController:
                     best_score = score
                     best_target = best_def_loc
 
-        # --- Non-hill targets ---
         for loc, dist in distances.items():
             if loc == player.loc:
                 continue
@@ -317,21 +290,15 @@ class PlayerController:
 
         return best_target
 
-    # ------------------------------------------------------------------ #
-    # Safe pathfinding — avoids opponent territory near opponent            #
-    # ------------------------------------------------------------------ #
-
     def _safe_step(
         self, board: Board, start: Location, target: Location,
         player_parity: int,
     ) -> Optional[Direction]:
         if start == target:
             return None
-        # Phase 1: try avoiding danger zones
         result = self._bfs_step(board, start, target, player_parity, avoid_danger=True)
         if result:
             return result
-        # Phase 2: take any path
         return self._bfs_step(board, start, target, player_parity, avoid_danger=False)
 
     def _bfs_step(
@@ -340,6 +307,12 @@ class PlayerController:
     ) -> Optional[Direction]:
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
+
+        opp_neighbors: Set[Location] = set()
+        for d in Direction.cardinals():
+            n = opp_loc + d
+            if not board.oob(n):
+                opp_neighbors.add(n)
 
         visited: Set[Location] = {start}
         queue: deque = deque()
@@ -351,7 +324,9 @@ class PlayerController:
             cell = board.cells[nxt.r][nxt.c]
             if cell.is_wall:
                 continue
-            if nxt == opp_loc and cell.owner_parity != player_parity:
+            if nxt == opp_loc:
+                continue
+            if nxt in opp_neighbors and cell.owner_parity != player_parity:
                 continue
             if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
                 continue
@@ -369,7 +344,9 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opp_loc and cell.owner_parity != player_parity:
+                if nxt == opp_loc:
+                    continue
+                if nxt in opp_neighbors and cell.owner_parity != player_parity:
                     continue
                 if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
                     continue
@@ -382,14 +359,9 @@ class PlayerController:
         self, cell: CellState, loc: Location, opp_loc: Location,
         player_parity: int,
     ) -> bool:
-        """Opponent-owned cell within Manhattan distance 2 of opponent."""
         if cell.owner_parity != -player_parity:
             return False
         return abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 2
-
-    # ------------------------------------------------------------------ #
-    # Helpers                                                              #
-    # ------------------------------------------------------------------ #
 
     def _adjacent_to_friendly(
         self, board: Board, loc: Location, player_parity: int,
@@ -421,6 +393,13 @@ class PlayerController:
         player = board.get_player(player_parity)
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
+
+        opp_neighbors: Set[Location] = set()
+        for d in Direction.cardinals():
+            n = opp_loc + d
+            if not board.oob(n):
+                opp_neighbors.add(n)
+
         best: Optional[Action.Move] = None
         best_safe = False
         for direction in Direction.cardinals():
@@ -430,7 +409,9 @@ class PlayerController:
             cell = board.cells[nxt.r][nxt.c]
             if cell.is_wall:
                 continue
-            if nxt == opp_loc and cell.owner_parity != player_parity:
+            if nxt == opp_loc:
+                continue
+            if nxt in opp_neighbors and cell.owner_parity != player_parity:
                 continue
             safe = (cell.owner_parity != -player_parity)
             if best is None or (safe and not best_safe):
