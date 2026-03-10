@@ -7,14 +7,16 @@ from game import *
 
 class PlayerController:
     """
-    HillRusher v3:
-    - Danger-zone collision avoidance (avoid opponent territory near opponent)
+    HillRusher v4:
+    - Collision avoidance based on actual engine mechanics:
+      * Never step onto opponent unless cell is ours (kill)
+      * Avoid opponent territory near opponent (they can step onto us and win)
+      * Expanded danger zone (radius 3) to account for multi-move
     - Offensive kills (step onto opponent when they're on our cell)
     - Multi-move when traveling far (2nd step for 10 stamina)
     - Per-hill scoring (size, contestedness, distance)
     - Hill defense (retarget our hills under attack)
     - Greedy multi-paint before AND after each move
-    - Swap-collision avoidance (never step onto opponent's current cell)
     """
 
     def __init__(self, player_parity: int, time_left: Callable):
@@ -69,8 +71,10 @@ class PlayerController:
                     new_pos = self._simulate_position(board, player.loc, actions)
                     dir2 = self._safe_step(board, new_pos, target, player_parity)
                     if dir2:
-                        actions.append(Action.Move(dir2))
-                        stamina -= GameConstants.EXTRA_MOVE_COST
+                        dest2 = new_pos + dir2
+                        if not self._would_collide(board, dest2, player_parity):
+                            actions.append(Action.Move(dir2))
+                            stamina -= GameConstants.EXTRA_MOVE_COST
 
         if moved:
             new_pos = self._simulate_position(board, player.loc, actions)
@@ -89,6 +93,37 @@ class PlayerController:
 
         return actions
 
+    # ------------------------------------------------------------------ #
+    # Collision helpers                                                     #
+    # ------------------------------------------------------------------ #
+
+    def _would_collide(
+        self, board: Board, dest: Location, player_parity: int,
+    ) -> bool:
+        """Check if moving to dest would cause a losing collision."""
+        opponent = board.get_opponent(player_parity)
+        if dest != opponent.loc:
+            return False
+        cell = board.cells[dest.r][dest.c]
+        return cell.owner_parity != player_parity
+
+    def _is_danger(
+        self, cell: CellState, loc: Location, opp_loc: Location,
+        player_parity: int,
+    ) -> bool:
+        """
+        Opponent-owned cell within Manhattan distance 3 of opponent.
+        If the opponent steps onto us here, they win (cell is theirs).
+        Radius 3 accounts for opponent multi-move.
+        """
+        if cell.owner_parity != -player_parity:
+            return False
+        return abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 3
+
+    # ------------------------------------------------------------------ #
+    # Kill detection                                                       #
+    # ------------------------------------------------------------------ #
+
     def _check_kill(
         self, board: Board, player: Player, opponent: Player,
         player_parity: int,
@@ -103,6 +138,10 @@ class PlayerController:
             if cell.owner_parity == player_parity:
                 return direction
         return None
+
+    # ------------------------------------------------------------------ #
+    # Greedy paint                                                         #
+    # ------------------------------------------------------------------ #
 
     def _greedy_paint(
         self,
@@ -161,6 +200,10 @@ class PlayerController:
                 best = target
         return best
 
+    # ------------------------------------------------------------------ #
+    # BFS — full distance map                                              #
+    # ------------------------------------------------------------------ #
+
     def _bfs_all_distances(
         self, board: Board, start: Location, player_parity: int,
     ) -> Dict[Location, int]:
@@ -177,11 +220,15 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opp_loc:
+                if nxt == opp_loc and cell.owner_parity != player_parity:
                     continue
                 distances[nxt] = d + 1
                 queue.append((nxt, d + 1))
         return distances
+
+    # ------------------------------------------------------------------ #
+    # Target selection                                                     #
+    # ------------------------------------------------------------------ #
 
     def _choose_target(
         self,
@@ -290,6 +337,10 @@ class PlayerController:
 
         return best_target
 
+    # ------------------------------------------------------------------ #
+    # Safe pathfinding                                                     #
+    # ------------------------------------------------------------------ #
+
     def _safe_step(
         self, board: Board, start: Location, target: Location,
         player_parity: int,
@@ -308,12 +359,6 @@ class PlayerController:
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
 
-        opp_neighbors: Set[Location] = set()
-        for d in Direction.cardinals():
-            n = opp_loc + d
-            if not board.oob(n):
-                opp_neighbors.add(n)
-
         visited: Set[Location] = {start}
         queue: deque = deque()
 
@@ -324,9 +369,7 @@ class PlayerController:
             cell = board.cells[nxt.r][nxt.c]
             if cell.is_wall:
                 continue
-            if nxt == opp_loc:
-                continue
-            if nxt in opp_neighbors and cell.owner_parity != player_parity:
+            if nxt == opp_loc and cell.owner_parity != player_parity:
                 continue
             if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
                 continue
@@ -344,9 +387,7 @@ class PlayerController:
                 cell = board.cells[nxt.r][nxt.c]
                 if cell.is_wall:
                     continue
-                if nxt == opp_loc:
-                    continue
-                if nxt in opp_neighbors and cell.owner_parity != player_parity:
+                if nxt == opp_loc and cell.owner_parity != player_parity:
                     continue
                 if avoid_danger and self._is_danger(cell, nxt, opp_loc, player_parity):
                     continue
@@ -355,13 +396,9 @@ class PlayerController:
 
         return None
 
-    def _is_danger(
-        self, cell: CellState, loc: Location, opp_loc: Location,
-        player_parity: int,
-    ) -> bool:
-        if cell.owner_parity != -player_parity:
-            return False
-        return abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 2
+    # ------------------------------------------------------------------ #
+    # Helpers                                                              #
+    # ------------------------------------------------------------------ #
 
     def _adjacent_to_friendly(
         self, board: Board, loc: Location, player_parity: int,
@@ -390,18 +427,12 @@ class PlayerController:
     def _any_valid_move(
         self, board: Board, player_parity: int,
     ) -> Optional[Action.Move]:
+        """Fallback move with collision-aware priority."""
         player = board.get_player(player_parity)
         opponent = board.get_opponent(player_parity)
         opp_loc = opponent.loc
 
-        opp_neighbors: Set[Location] = set()
-        for d in Direction.cardinals():
-            n = opp_loc + d
-            if not board.oob(n):
-                opp_neighbors.add(n)
-
-        best: Optional[Action.Move] = None
-        best_safe = False
+        candidates: list = []
         for direction in Direction.cardinals():
             nxt = player.loc + direction
             if board.oob(nxt):
@@ -409,17 +440,29 @@ class PlayerController:
             cell = board.cells[nxt.r][nxt.c]
             if cell.is_wall:
                 continue
-            if nxt == opp_loc:
+            if nxt == opp_loc and cell.owner_parity != player_parity:
                 continue
-            if nxt in opp_neighbors and cell.owner_parity != player_parity:
-                continue
-            safe = (cell.owner_parity != -player_parity)
-            if best is None or (safe and not best_safe):
-                best = Action.Move(direction)
-                best_safe = safe
-                if safe:
-                    break
-        return best
+
+            danger = self._is_danger(cell, nxt, opp_loc, player_parity)
+            friendly = (cell.owner_parity == player_parity)
+            neutral = (cell.owner_parity == 0)
+
+            if friendly and not danger:
+                priority = 3
+            elif neutral and not danger:
+                priority = 2
+            elif not danger:
+                priority = 1
+            else:
+                priority = 0
+
+            candidates.append((priority, direction))
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda x: -x[0])
+        return Action.Move(candidates[0][1])
 
     def _in_hill_area(self, board: Board, loc: Location) -> bool:
         if board.cells[loc.r][loc.c].hill_id != 0:
