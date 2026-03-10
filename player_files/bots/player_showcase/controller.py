@@ -85,12 +85,14 @@ class PlayerController:
                 board, player_parity, new_pos, set(), actions, stamina, buffer=buf
             )
 
-        # ---- Fallback ----
-        if not actions:
+        # ---- Guarantee at least one Move (engine rejects paint-only turns) ----
+        has_move = any(isinstance(a, Action.Move) for a in actions)
+        if not has_move:
             fallback = self._any_valid_move(board, player_parity)
             if fallback:
-                return [fallback]
-            return []
+                actions.append(fallback)
+            else:
+                return []
 
         return actions
 
