@@ -7,31 +7,23 @@ from game import *
 
 DANGER_STRICT = 3
 DANGER_MODERATE = 1
-MIN_REGEN_BASE = 6
 
 
 class PlayerController:
     """
-    HillRusher v13.
+    HillRusher v12.
 
-    v12 maze fix: contest-when-tied rule caused starvation on large maps.
-    Bot would sprint across 30-step corridors without farming, arrive with
-    no stamina, die. v11's simpler rush→farm→expand won every large map.
-
-    Key changes:
-      - REMOVED: tied-hills + uncaptured = contest
-      - NEW: contest/emergency gated behind MIN_REGEN_BASE local cells.
-        If 5×5 regen zone < 6 cells, FARM first regardless of hill deficit.
-      - NEW: rush/contest phases paint along the way (hybrid movement).
-        Pre-paint before moving, post-paint after, even during urgent phases.
-      - Late-game hill priority only kicks in if we have regen base.
+    Fixes from match analysis:
+      - Image 9/11: no emergency/contest → deploy hill-parity-first phases
+      - Image 11: tiebreak loss with territory lead → late-game hill priority
+      - Image 10: 29/180 stamina deep in enemy territory → stamina conservation
+      - Image 7/8: early collision near contested hills → retreat if hill contested
 
     Phase priority:
-      (always) if local regen < MIN_REGEN_BASE → FARM (build regen first)
-      EMERGENCY → opponent 1 hill from domination
-      CONTEST   → opponent has more hills (and we have regen base)
+      EMERGENCY → opponent 1 hill from domination OR late-game hill deficit
+      CONTEST   → opponent has more hills
       RUSH      → 0 hills owned
-      FARM      → tied/ahead, local 5×5 thin
+      FARM      → tied/ahead on hills, local 5×5 thin
       EXPAND    → push territory + more hills
     """
 
@@ -91,7 +83,7 @@ class PlayerController:
         if msk is not None:
             return msk
 
-        # ---- Priority 4: Escape ----
+        # ---- Priority 4: Escape — on opponent territory near opponent ----
         cur_cell = board.cells[player.loc.r][player.loc.c]
         dist_to_opp = abs(player.loc.r - opp_loc.r) + abs(player.loc.c - opp_loc.c)
         if cur_cell.owner_parity == -player_parity and dist_to_opp <= 4:
@@ -104,14 +96,16 @@ class PlayerController:
                 )
                 return actions
 
-        # ---- Priority 5: Stamina conservation ----
-        if stamina < 40 and cur_cell.owner_parity != player_parity:
+        # ---- Priority 5: Stamina conservation escape ----
+        # If stamina is critically low AND we're not on friendly territory,
+        # retreat toward friendly territory for regen (Image 10 fix)
+        if stamina < 50 and cur_cell.owner_parity != player_parity:
             retreat_dir = self._retreat_to_friendly(board, player.loc, player_parity)
             if retreat_dir:
                 actions.append(Action.Move(retreat_dir))
                 new_pos = player.loc + retreat_dir
                 actions, stamina = self._smart_paint(
-                    board, player_parity, new_pos, actions, stamina, 30, extra_layers
+                    board, player_parity, new_pos, actions, stamina, 40, extra_layers
                 )
                 return actions
 
@@ -130,13 +124,7 @@ class PlayerController:
         # ---- EMERGENCY / CONTEST / RUSH ----
         if phase in ("emergency", "contest", "rush"):
             target = self._choose_hill_target(board, player_parity, distances, phase, opponent)
-            buf = 30
-
-            # Hybrid: always paint before moving, even in urgent phases
-            actions, stamina = self._smart_paint(
-                board, player_parity, player.loc, actions, stamina, buf, extra_layers
-            )
-
+            buf = 35
             if target:
                 direction = self._safe_step(board, player.loc, target, player_parity)
                 if direction:
@@ -148,8 +136,6 @@ class PlayerController:
                         if d2 and not self._is_step_dangerous(board, np2 + d2, player_parity):
                             actions.append(Action.Move(d2))
                             stamina -= GameConstants.EXTRA_MOVE_COST
-
-                    # Hybrid: paint after moving too
                     new_pos = self._simulate_position(board, player.loc, actions)
                     actions, stamina = self._smart_paint(
                         board, player_parity, new_pos, actions, stamina, buf, extra_layers
@@ -210,7 +196,7 @@ class PlayerController:
         return actions
 
     # ================================================================== #
-    #  PHASE DETERMINATION — REGEN-GATED                                  #
+    #  PHASE DETERMINATION — HILL PARITY FIRST                            #
     # ================================================================== #
 
     def _determine_phase(
@@ -220,7 +206,6 @@ class PlayerController:
         total_hills = len(board.hills)
         our_hills = len(player.controlled_hills)
         opp_hills = len(opponent.controlled_hills)
-        have_regen_base = (local_count >= MIN_REGEN_BASE)
 
         if total_hills == 0:
             threshold = max(max_local * 0.65, 8)
@@ -230,25 +215,19 @@ class PlayerController:
 
         dom_needed = math.ceil(total_hills * GameConstants.DOMINATION_WIN_THRESHOLD)
 
-        # EMERGENCY: opponent 1 hill from domination — override regen gate
-        # This is truly urgent, we lose the game if we don't act
+        # EMERGENCY: opponent 1 hill from domination
         if opp_hills + 1 >= dom_needed and opp_hills > our_hills:
             return "emergency"
 
-        # If we don't have a regen base yet, farm first no matter what.
-        # Chasing hills without regen = stamina death on large maps.
-        if not have_regen_base:
-            return "farm"
-
-        # Late game: behind on hills with regen base → emergency
+        # EMERGENCY: late game, behind on hills (tiebreak = hills first)
         if board.current_round > 400 and opp_hills > our_hills:
             return "emergency"
 
-        # CONTEST: opponent has more hills (we have regen base)
+        # CONTEST: opponent has more hills
         if opp_hills > our_hills:
             return "contest"
 
-        # RUSH: 0 hills (we have regen base)
+        # RUSH: 0 hills
         if our_hills == 0:
             reachable = False
             for loc in distances:
@@ -259,7 +238,17 @@ class PlayerController:
             if reachable:
                 return "rush"
 
-        # Ahead or tied — farm or expand
+        # CONTEST: tied on hills but not dominating, try to get ahead
+        # (Image 11 fix: territory lead means nothing if hills are tied)
+        if total_hills > 0 and our_hills == opp_hills and our_hills < total_hills:
+            uncaptured = sum(
+                1 for h in board.hills.values()
+                if h.controller_parity == 0
+            )
+            if uncaptured > 0:
+                return "contest"
+
+        # Ahead on hills — farm or expand
         threshold = max(max_local * 0.65, 8)
         if local_count < threshold:
             return "farm"
@@ -387,7 +376,9 @@ class PlayerController:
         for hill_id, hill in board.hills.items():
             if hill.controller_parity == player_parity:
                 continue
+
             opp_holds = (hill.controller_parity == opponent.parity)
+
             nearest_dist: Optional[int] = None
             nearest_loc: Optional[Location] = None
             for hloc in hill.cells:
@@ -400,9 +391,12 @@ class PlayerController:
                 if nearest_dist is None or d < nearest_dist:
                     nearest_dist = d
                     nearest_loc = hloc
+
             if nearest_loc is None or nearest_dist is None:
                 continue
+
             eff = self._hill_efficiency(board, player_parity, hill, nearest_dist)
+
             if phase == "emergency":
                 score = 1000.0 + eff * 30.0
                 if opp_holds:
@@ -413,6 +407,7 @@ class PlayerController:
                     score += 100.0
             else:
                 score = 300.0 + eff * 20.0
+
             if score > best_score:
                 best_score = score
                 best = nearest_loc
@@ -446,7 +441,7 @@ class PlayerController:
                     best_score = score
                     best = best_def_loc
 
-        # Grab close powerups
+        # Grab close powerups on the way
         if best is not None:
             for loc, dist in distances.items():
                 cell = board.cells[loc.r][loc.c]
@@ -514,12 +509,15 @@ class PlayerController:
         opp_hills = len(opponent.controlled_hills)
         hills_for_win = math.ceil(total_hills * GameConstants.DOMINATION_WIN_THRESHOLD) if total_hills > 0 else 0
         close_to_dom = (total_hills > 0 and our_hills + 1 >= hills_for_win)
+
+        # Late game: hills matter way more for tiebreak
         late_game = board.current_round > 600
         hill_boost = 100.0 if late_game and our_hills <= opp_hills else 0.0
 
         best_target: Optional[Location] = None
         best_score: float = -9999.0
 
+        # Hills by efficiency
         for hill_id, hill in board.hills.items():
             if hill.controller_parity == player_parity:
                 continue
@@ -544,6 +542,7 @@ class PlayerController:
                 best_score = score
                 best_target = nearest_loc
 
+        # Defend our hills
         for hill_id in player.controlled_hills:
             hill = board.hills[hill_id]
             opp_cells = sum(
@@ -572,6 +571,7 @@ class PlayerController:
                     best_score = score
                     best_target = best_def_loc
 
+        # Powerups
         for loc, dist in distances.items():
             cell = board.cells[loc.r][loc.c]
             if cell.powerup:
@@ -580,6 +580,7 @@ class PlayerController:
                     best_score = score
                     best_target = loc
 
+        # Territory expansion
         for loc, dist in distances.items():
             cell = board.cells[loc.r][loc.c]
             if cell.hill_id != 0 or cell.powerup:
@@ -709,6 +710,7 @@ class PlayerController:
     def _retreat_to_friendly(
         self, board: Board, start: Location, player_parity: int,
     ) -> Optional[Direction]:
+        """BFS toward nearest friendly territory when stamina is critical."""
         opp = board.get_opponent(player_parity)
         opp_loc = opp.loc
         visited: Set[Location] = {start}
@@ -718,7 +720,9 @@ class PlayerController:
             if board.oob(nxt) or nxt in visited:
                 continue
             cell = board.cells[nxt.r][nxt.c]
-            if cell.is_wall or nxt == opp_loc:
+            if cell.is_wall:
+                continue
+            if nxt == opp_loc:
                 continue
             if self._is_danger(board, nxt, opp_loc, player_parity, DANGER_MODERATE):
                 continue
@@ -928,15 +932,18 @@ class PlayerController:
     ) -> str:
         player = board.get_player(player_parity)
         opp = board.get_opponent(player_parity)
-        lc = self._count_local_controlled(board, player.loc, player_parity)
-        la = self._count_local_available(board, player.loc)
-        phase = self._determine_phase(board, player, opp, lc, la, {})
         mt = board.get_territory_count(player_parity)
         ot = board.get_territory_count(-player_parity)
+        lc = self._count_local_controlled(board, player.loc, player_parity)
+        phase = self._determine_phase(
+            board, player, opp, lc,
+            self._count_local_available(board, player.loc),
+            {}
+        )
         return (
             f"[{phase}] hills={len(player.controlled_hills)}v{len(opp.controlled_hills)}"
             f" terr={mt}v{ot}"
-            f" local={lc}/{la}"
+            f" local={lc}"
             f" stam={player.stamina}/{player.max_stamina}"
             f" r={board.current_round}"
         )
