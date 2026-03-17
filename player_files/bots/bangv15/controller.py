@@ -132,8 +132,7 @@ class PlayerController:
         # ---- EMERGENCY / CONTEST / RUSH ----
         if phase in ("emergency", "contest", "rush"):
             target = self._choose_hill_target(board, player_parity, distances, phase, opponent)
-            move_buf = 30  # stamina threshold for taking extra moves (sustainability)
-            paint_buf = 25  # stamina buffer to keep after post-paint (allows 1-2 extra cells)
+            buf = 30
 
             # v15: MOVE-FIRST — skip pre-paint to preserve full stamina for extra moves.
             # v14's hybrid pre-paint depleted stamina to ~40 before moves, making the
@@ -147,22 +146,16 @@ class PlayerController:
                     stamina_rem = stamina  # full stamina — no pre-paint depleted it
 
                     td = distances.get(target)
-                    # When opponent is close, limit to 2nd move only (avoid rushing into
-                    # opponent's zone — 3rd move lands too far from safety and
-                    # opponent can intercept on their turn as mover on neutral cell).
-                    close_to_opp = (dist_to_opp <= 4)
                     # Second move: check from full stamina, lower threshold (no +10 margin)
-                    if td and td > 2 and stamina_rem >= GameConstants.EXTRA_MOVE_COST + move_buf:
+                    if td and td > 2 and stamina_rem >= GameConstants.EXTRA_MOVE_COST + buf:
                         np2 = self._simulate_position(board, player.loc, actions)
                         d2 = self._safe_step(board, np2, target, player_parity)
                         if d2 and not self._is_step_dangerous(board, np2 + d2, player_parity, 2):
                             actions.append(Action.Move(d2))
                             stamina_rem -= GameConstants.EXTRA_MOVE_COST
 
-                            # Third move: only when opponent is not close
-                            if (not close_to_opp
-                                    and td > 3
-                                    and stamina_rem >= GameConstants.EXTRA_MOVE_COST * 2 + move_buf):
+                            # Third move
+                            if td > 3 and stamina_rem >= GameConstants.EXTRA_MOVE_COST * 2 + buf:
                                 np3 = self._simulate_position(board, player.loc, actions)
                                 d3 = self._safe_step(board, np3, target, player_parity)
                                 if d3 and not self._is_step_dangerous(board, np3 + d3, player_parity, 2):
@@ -171,18 +164,17 @@ class PlayerController:
 
                                     # Fourth move in emergency only — when opponent about to win
                                     if (phase == "emergency" and td > 4
-                                            and stamina_rem >= GameConstants.EXTRA_MOVE_COST * 3 + move_buf):
+                                            and stamina_rem >= GameConstants.EXTRA_MOVE_COST * 3 + buf):
                                         np4 = self._simulate_position(board, player.loc, actions)
                                         d4 = self._safe_step(board, np4, target, player_parity)
                                         if d4 and not self._is_step_dangerous(board, np4 + d4, player_parity, 2):
                                             actions.append(Action.Move(d4))
                                             stamina_rem -= GameConstants.EXTRA_MOVE_COST * 3
 
-                    # Post-paint after all moves — use paint_buf (lower than move_buf)
-                    # to squeeze 1 extra cell painted when stamina is in 40-70 range.
+                    # Post-paint after all moves
                     new_pos = self._simulate_position(board, player.loc, actions)
                     actions, stamina = self._smart_paint(
-                        board, player_parity, new_pos, actions, stamina_rem, paint_buf, extra_layers
+                        board, player_parity, new_pos, actions, stamina_rem, buf, extra_layers
                     )
 
         # ---- FARM ----
@@ -244,11 +236,11 @@ class PlayerController:
                     target_is_hill = (not board.oob(target)
                                       and board.cells[target.r][target.c].hill_id != 0)
                     stamina_after_m1 = stamina
-                    # Double-move when target is 4+ steps away (radius=2 safety same as rush)
+                    # Double-move when target is 4+ steps away
                     if td and td > 3 and stamina_after_m1 >= GameConstants.EXTRA_MOVE_COST + 30:
                         np2 = self._simulate_position(board, player.loc, actions)
                         d2 = self._safe_step(board, np2, target, player_parity)
-                        if d2 and not self._is_step_dangerous(board, np2 + d2, player_parity, 2):
+                        if d2 and not self._is_step_dangerous(board, np2 + d2, player_parity):
                             actions.append(Action.Move(d2))
                             stamina_after_m1 -= GameConstants.EXTRA_MOVE_COST
                             # Triple move when expanding to a hill
@@ -256,7 +248,7 @@ class PlayerController:
                                     and stamina_after_m1 >= GameConstants.EXTRA_MOVE_COST * 2 + 30):
                                 np3 = self._simulate_position(board, player.loc, actions)
                                 d3 = self._safe_step(board, np3, target, player_parity)
-                                if d3 and not self._is_step_dangerous(board, np3 + d3, player_parity, 2):
+                                if d3 and not self._is_step_dangerous(board, np3 + d3, player_parity):
                                     actions.append(Action.Move(d3))
                     new_pos = self._simulate_position(board, player.loc, actions)
                     actions, stamina = self._smart_paint(
@@ -332,19 +324,6 @@ class PlayerController:
         # Endgame territory push: leading/tied on hills (and we actually have hills), late game
         if board.current_round > 750 and our_hills > 0 and our_hills >= opp_hills:
             return "territory"
-
-        # Mid-game territory push: when hills are tied and all hills are captured,
-        # avoid futile hill re-challenges (opponent defends with layers/beacons).
-        # Flood neutral territory instead to win tiebreaks.
-        if (board.current_round > 500 and our_hills == opp_hills and our_hills > 0):
-            any_neutral_hill = any(
-                board.hills[cell.hill_id].controller_parity == 0
-                for loc in distances
-                for cell in [board.cells[loc.r][loc.c]]
-                if cell.hill_id != 0
-            )
-            if not any_neutral_hill:
-                return "territory"
 
         # Ahead or tied — farm or expand
         threshold = max(max_local * 0.65, 8)
@@ -583,7 +562,8 @@ class PlayerController:
         total_cost = nearest_dist + cells_to_paint * 1.5
         if total_cost <= 0:
             total_cost = 0.1
-        return -total_cost
+        defense_cost = hill_size * 0.3
+        return -(total_cost + defense_cost)
 
     def _choose_hill_target(
         self, board: Board, player_parity: int,
@@ -686,10 +666,6 @@ class PlayerController:
                 continue
             if self._is_danger(board, nxt, opp_loc, player_parity, DANGER_MODERATE):
                 continue
-            # Avoid landing on neutral cell adjacent to opponent (paint-then-kill trap)
-            if (cell.owner_parity == 0 and cell.beacon_parity == 0
-                    and abs(nxt.r - opp_loc.r) + abs(nxt.c - opp_loc.c) == 1):
-                continue
             score = self._paint_value_from(board, player_parity, nxt)
             if score > best_score:
                 best_score = score
@@ -729,7 +705,6 @@ class PlayerController:
         our_hills = len(player.controlled_hills)
         opp_hills = len(opponent.controlled_hills)
         hills_for_win = math.ceil(total_hills * GameConstants.DOMINATION_WIN_THRESHOLD) if total_hills > 0 else 0
-        opp_loc = opponent.loc
         close_to_dom = (total_hills > 0 and our_hills + 1 >= hills_for_win)
         late_game = board.current_round > 600
         hill_boost = 100.0 if late_game and our_hills <= opp_hills else 0.0
@@ -804,9 +779,6 @@ class PlayerController:
                 continue
             if cell.owner_parity != 0 or loc == player.loc:
                 continue
-            # Skip neutral cells immediately adjacent to opponent (paint-then-kill risk)
-            if abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 1:
-                continue
             score: float = 0.0
             if self._adjacent_to_friendly(board, loc, player_parity):
                 score = 30.0 - dist * 2.0
@@ -827,18 +799,13 @@ class PlayerController:
         """
         v14 endgame: pick the closest unowned cell to flood-fill territory.
         Prioritizes cells adjacent to our existing territory for connected expansion.
-        Avoids cells immediately adjacent to opponent (paint-then-kill risk).
         """
-        opp_loc = board.get_opponent(player_parity).loc
         best_target: Optional[Location] = None
         best_score: float = -9999.0
 
         for loc, dist in distances.items():
             cell = board.cells[loc.r][loc.c]
             if cell.is_wall or cell.owner_parity != 0 or loc == player.loc:
-                continue
-            # Skip neutral cells adjacent to opponent (paint-then-kill vulnerability)
-            if abs(loc.r - opp_loc.r) + abs(loc.c - opp_loc.c) <= 1:
                 continue
             score = 50.0 - dist * 3.0
             if self._adjacent_to_friendly(board, loc, player_parity):
@@ -925,8 +892,13 @@ class PlayerController:
             return True
         opp = board.get_opponent(player_parity)
         opp_loc = opp.loc
-        # Never step directly onto opponent's current location.
+        # Never step directly onto opponent (covers neutral territory head-on)
         if dest == opp_loc:
+            return True
+        # Raw proximity check: if destination is within radius of opponent regardless
+        # of territory ownership. This prevents extra moves from putting us adjacent
+        # to opponent (who may step on us next turn or same-round collision).
+        if abs(dest.r - opp_loc.r) + abs(dest.c - opp_loc.c) <= radius:
             return True
         return self._is_danger(board, dest, opp_loc, player_parity, radius)
 

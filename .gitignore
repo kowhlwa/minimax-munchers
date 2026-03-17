@@ -1,3 +1,6 @@
 .venv
 Bytefight Client 2026.app
 engine
+__pycache__
+.DS_Store
+.claude/
