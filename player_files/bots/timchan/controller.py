@@ -116,6 +116,31 @@ class PlayerController:
         area = board.board_size.r * board.board_size.c
         large_map = area >= 400  # ~20x20+
 
+        # === IS THE TARGET HILL CONTESTED? ===
+        # Contested = opponent is within 6 steps of any cell on the target hill
+        contested = False
+        target_cell = board.cells[target.r][target.c] if not board.oob(target) else None
+        if target_cell and target_cell.hill_id != 0:
+            target_hid = target_cell.hill_id
+            hill_obj = board.hills.get(target_hid)
+            if hill_obj:
+                for hloc in hill_obj.cells:
+                    if self._md(hloc, opp.loc) <= 6:
+                        contested = True
+                        break
+
+        # === WHEN ON A HILL UNCONTESTED: retarget to nearest unpainted hill cell ===
+        # This makes the bot walk across the hill painting new cells instead of
+        # layering up the few cells adjacent to where it stopped.
+        cur_hill_id = board.cells[pos.r][pos.c].hill_id
+        if cur_hill_id != 0 and not contested:
+            hill_obj = board.hills.get(cur_hill_id)
+            if hill_obj and hill_obj.controller_parity != pp:
+                unpainted = self._nearest_unpainted_hill_cell(board, pp, hill_obj, my_dist)
+                if unpainted:
+                    target = unpainted
+                    td = my_dist.get(target, 999)
+
         # === STAMINA BUDGET: reserve more when far from hill ===
         if td > 5:
             buf = 55
@@ -130,7 +155,7 @@ class PlayerController:
             buf = 35
 
         # === PRE-MOVE PAINTING ===
-        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf)
+        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, contested)
 
         # Trail painting: on large maps, always paint 1 new cell per stop for regen.
         # On small maps, only when stamina is healthy.
@@ -148,7 +173,7 @@ class PlayerController:
             p1 = pos + d1
 
             # Paint hill cells at new position
-            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf)
+            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, contested)
 
             # Trail at new position (large maps)
             if large_map and td > 3:
@@ -162,7 +187,7 @@ class PlayerController:
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
-                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 15))
+                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), contested)
 
                     if large_map and td > 5:
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
@@ -174,11 +199,11 @@ class PlayerController:
                             actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
-                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 15)
+                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 15, contested)
 
         # === POST-MOVE: paint remaining hill cells ===
         final = self._simpos(board, pos, actions)
-        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 15)
+        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 15, contested)
 
         # Paint trail at final position if on a hill or on large map
         if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
@@ -217,6 +242,9 @@ class PlayerController:
             if hill.controller_parity == pp:
                 continue
 
+            # Distance to nearest ANY hill cell (including ours) = true proximity
+            hill_dist = 999
+            # Distance to nearest unpainted cell = where we need to go
             nearest_dist = 999
             nearest_loc = None
             our_cells = 0
@@ -224,15 +252,17 @@ class PlayerController:
 
             for hloc in hill.cells:
                 hc = board.cells[hloc.r][hloc.c]
+                d = my_dist.get(hloc, 999)
+                if d < hill_dist:
+                    hill_dist = d
                 if hc.owner_parity == pp:
                     our_cells += 1
-                    continue
-                if hc.owner_parity == -pp:
-                    opp_cells += 1
-                d = my_dist.get(hloc, 999)
-                if d < nearest_dist:
-                    nearest_dist = d
-                    nearest_loc = hloc
+                else:
+                    if hc.owner_parity == -pp:
+                        opp_cells += 1
+                    if d < nearest_dist:
+                        nearest_dist = d
+                        nearest_loc = hloc
 
             if nearest_loc is None:
                 continue
@@ -254,17 +284,23 @@ class PlayerController:
                     opp_nearest = d
             opp_cost = opp_nearest + opp_to_paint * 1.5
 
-            race_adv = opp_cost - our_cost
+            # Cap race_adv so a far-away "easy" hill can't beat a nearby one
+            race_adv = min(opp_cost - our_cost, 30)
             size_bonus = max(0, 10 - hs) * 3
             close_to_dom = 80 if (our_hills + 1 >= dom_needed) else 0
             steal_bonus = 40 if hill.controller_parity == -pp else 0
             late_bonus = 30 if board.current_round > 400 else 0
 
             # Commitment bonus: strongly prefer the hill we're already heading to.
-            # Only switch if another hill is SIGNIFICANTLY better.
             commit_bonus = 60 if (hid == committed) else 0
 
-            score = race_adv * 12 + size_bonus + close_to_dom + steal_bonus + late_bonus + commit_bonus - nearest_dist * 2
+            # Proximity bonus: strongly favor hills we're right next to.
+            # A hill 1 step away gets +80, 2 steps +60, 3 steps +40, etc.
+            proximity_bonus = max(0, 100 - hill_dist * 20)
+
+            score = (race_adv * 8 + size_bonus + close_to_dom + steal_bonus
+                     + late_bonus + commit_bonus + proximity_bonus
+                     - to_paint * 5)
 
             if score > best_score:
                 best_score = score
@@ -328,8 +364,10 @@ class PlayerController:
     # PAINTING
     # ===============================================================
 
-    def _paint_hill_cells(self, board, pp, pos, actions, stamina, painted, buf):
-        """Paint adjacent unpainted hill cells. Prioritizes new cells over reinforcement."""
+    def _paint_hill_cells(self, board, pp, pos, actions, stamina, painted, buf, contested=False):
+        """Paint adjacent unpainted hill cells.
+        If uncontested: only paint NEW cells (single layer, maximize coverage).
+        If contested: also reinforce existing cells with layers."""
         COST = GameConstants.PAINT_STAMINA_COST
         MV = GameConstants.MAX_PAINT_VALUE
 
@@ -353,9 +391,15 @@ class PlayerController:
                     continue
 
                 is_new = (c.owner_parity == 0 and added == 0)
-                # New hill cells are highest priority (capturing the hill)
-                # Reinforcing existing hill cells is secondary (preventing loss)
-                score = 200 if is_new else 80 + (MV - base - added) * 10
+
+                if is_new:
+                    score = 200
+                elif contested:
+                    # Reinforce only when opponent is nearby contesting
+                    score = 80 + (MV - base - added) * 10
+                else:
+                    # Uncontested: skip reinforcement — save stamina for coverage
+                    continue
 
                 if score > best_score:
                     best_score = score
@@ -784,6 +828,20 @@ class PlayerController:
     # ===============================================================
     # UTILITIES
     # ===============================================================
+
+    def _nearest_unpainted_hill_cell(self, board, pp, hill, my_dist):
+        """Find nearest unpainted cell on a specific hill — for walking across it."""
+        best = None
+        best_d = 999
+        for hloc in hill.cells:
+            hc = board.cells[hloc.r][hloc.c]
+            if hc.owner_parity == pp:
+                continue  # already ours, skip
+            d = my_dist.get(hloc, 999)
+            if d < best_d:
+                best_d = d
+                best = hloc
+        return best
 
     def _near_hill(self, board, pos, pp, radius=4):
         """Check if any uncaptured hill cell is within radius steps."""
