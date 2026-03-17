@@ -15,6 +15,7 @@ class PlayerController:
     def __init__(self, player_parity: int, time_left):
         self.pp = player_parity
         self._committed_hill_id = None  # hill ID we're committed to capturing
+        self._map_info = None  # cached map classification
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
         # First-move advantage is worth ~6 stamina for hill rushing
@@ -51,6 +52,11 @@ class PlayerController:
             ret = self._retreat_dir(board, pos, opp.loc, pp)
             if ret:
                 return [Action.Move(ret)]
+
+        # === MAP CLASSIFICATION (cached) ===
+        if self._map_info is None:
+            self._map_info = self._classify_map(board)
+        mi = self._map_info
 
         # === DISTANCES ===
         my_dist = self._bfs(board, pos, pp)
@@ -110,9 +116,9 @@ class PlayerController:
                 target = pu
                 td = my_dist.get(pu, 999)
 
-        # === MAP SIZE ===
-        area = board.board_size.r * board.board_size.c
-        large_map = area >= 400  # ~20x20+
+        # === MAP CHARACTERISTICS ===
+        large_map = mi['large']
+        maze_map = mi['maze']
 
         # === OPPONENT ANALYSIS ===
         dist_to_opp = self._md(pos, opp.loc)
@@ -172,15 +178,30 @@ class PlayerController:
                     td = my_dist.get(target, 999)
                     on_target_hill = True
 
+        # === CHOKEPOINT: if path to hill has a bottleneck, secure it ===
+        # When opponent is also near the chokepoint, controlling it is critical
+        if td > 2 and not on_target_hill and target_cell and target_cell.hill_id != 0:
+            choke, choke_dist = self._find_chokepoint_on_path(board, pos, target)
+            if choke and choke_dist <= td:
+                choke_cell = board.cells[choke.r][choke.c]
+                opp_to_choke = self._md(opp.loc, choke)
+                # Fight for the chokepoint if opponent could also reach it
+                if opp_to_choke <= choke_dist + 4 and choke_cell.owner_parity != pp:
+                    target = choke
+                    td = my_dist.get(target, 999)
+
         # === STAMINA BUDGET ===
-        if td > 5:
+        # Maze maps: paths are much longer than manhattan distance, conserve stamina
+        if maze_map:
+            buf = 25 if td > 3 else 15
+        elif td > 5:
             buf = 55
         elif td > 2:
             buf = 30
         else:
             buf = 15
 
-        if large_map and td > 8:
+        if large_map and td > 8 and not maze_map:
             buf = 35
 
         if on_target_hill and contested:
@@ -190,12 +211,16 @@ class PlayerController:
         # When all hills claimed, paint territory while heading to contest opponent hills
         paint_territory_en_route = all_hills_claimed or danger_zone
 
+        # Double-layer trail when near opponent — single layer gets erased in one step
+        trail_layers = 2 if danger_zone else 1
+
         # === PRE-MOVE PAINTING ===
         actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, reinforce, max_layers)
 
-        # Trail painting: always when contesting claimed hills, danger zone, or large maps
-        if paint_territory_en_route:
-            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
+        # Trail painting: always on maze maps (regen critical in corridors),
+        # when contesting claimed hills, danger zone, or large maps
+        if paint_territory_en_route or maze_map:
+            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target, trail_layers)
         elif large_map and td > 2:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
         elif stamina > 70 and td > 2:
@@ -219,11 +244,12 @@ class PlayerController:
 
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce, max_layers)
 
-            if paint_territory_en_route or (large_map and td > 3):
-                actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
+            if paint_territory_en_route or maze_map or (large_map and td > 3):
+                actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target, trail_layers)
 
-            # 2nd move
-            if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
+            # 2nd move — on maze maps, require more stamina headroom
+            move2_threshold = GameConstants.EXTRA_MOVE_COST + buf + (15 if maze_map else 5)
+            if td > 2 and stamina >= move2_threshold:
                 d2 = _pick_step(p1)
                 if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     actions.append(Action.Move(d2))
@@ -233,10 +259,10 @@ class PlayerController:
                     actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 10), reinforce, max_layers)
 
                     if paint_territory_en_route or (large_map and td > 5):
-                        actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
+                        actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target, trail_layers)
 
-                    # 3rd move
-                    if td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
+                    # 3rd move — skip on maze maps (too expensive, paths are long)
+                    if not maze_map and td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
                         d3 = _pick_step(p2)
                         if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             actions.append(Action.Move(d3))
@@ -249,9 +275,9 @@ class PlayerController:
         actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 10, reinforce, max_layers)
 
         if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
-            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
+            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target, trail_layers)
         elif paint_territory_en_route or (large_map and stamina > 30):
-            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
+            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target, trail_layers)
 
         # === GUARANTEE MOVE ===
         if not any(isinstance(a, Action.Move) for a in actions):
@@ -469,8 +495,9 @@ class PlayerController:
 
         return actions, stamina
 
-    def _paint_trail(self, board, pp, pos, actions, stamina, painted, buf, toward=None):
-        """Paint at most 1 new (unowned) adjacent cell — builds regen without waste."""
+    def _paint_trail(self, board, pp, pos, actions, stamina, painted, buf, toward=None, reinforce_to=1):
+        """Paint at most 1 adjacent cell — new cells first, then reinforce up to reinforce_to.
+        reinforce_to=1: only new cells (default). reinforce_to=2: also add 2nd layer to own cells."""
         COST = GameConstants.PAINT_STAMINA_COST
         if stamina - COST < buf:
             return actions, stamina
@@ -483,17 +510,28 @@ class PlayerController:
             if board.oob(t):
                 continue
             c = board.cells[t.r][t.c]
-            # Only paint NEW cells (no layering on uncontested territory)
-            if c.is_wall or c.beacon_parity != 0 or c.owner_parity != 0:
-                continue
-            if painted.get(t, 0) > 0:
+            if c.is_wall or c.beacon_parity != 0:
                 continue
 
-            score = 10
-            if c.hill_id != 0:
-                score = 100  # always paint new hill cells
+            base = abs(c.paint_value) if c.owner_parity == pp else 0
+            added = painted.get(t, 0)
+            eff = base + added
+
+            if c.owner_parity == 0 and added == 0:
+                # New cell — always highest priority
+                score = 50
+                if c.hill_id != 0:
+                    score = 150
+            elif c.owner_parity == pp and eff < reinforce_to:
+                # Our cell below reinforce cap — add a layer
+                score = 20
+                if c.hill_id != 0:
+                    score = 80
+            else:
+                continue
+
             if toward and self._md(t, toward) < self._md(pos, toward):
-                score += 8  # bias toward our target
+                score += 8
             if score > best_score:
                 best_score = score
                 best = t
@@ -1044,6 +1082,79 @@ class PlayerController:
                 visited.add(nxt)
                 queue.append(nxt)
         return False
+
+    # ===============================================================
+    # MAP CLASSIFICATION
+    # ===============================================================
+
+    def _classify_map(self, board):
+        """Classify map characteristics once at start. Cached in self._map_info."""
+        area = board.board_size.r * board.board_size.c
+        wall_count = sum(
+            1 for r in range(board.board_size.r)
+            for c in range(board.board_size.c)
+            if board.cells[r][c].is_wall
+        )
+        wall_ratio = wall_count / area if area > 0 else 0
+        return {
+            'area': area,
+            'large': area >= 400,
+            'small': area < 300,
+            'maze': wall_ratio >= 0.30,  # 30%+ walls = maze-like
+            'wall_ratio': wall_ratio,
+            'num_hills': len(board.hills),
+        }
+
+    # ===============================================================
+    # CHOKEPOINT DETECTION
+    # ===============================================================
+
+    def _is_chokepoint(self, board, loc):
+        """A cell is a chokepoint if it has exactly 2 passable neighbors (corridor)."""
+        passable = 0
+        for d in Direction.cardinals():
+            nxt = loc + d
+            if not board.oob(nxt) and not board.cells[nxt.r][nxt.c].is_wall:
+                passable += 1
+        return passable <= 2
+
+    def _find_chokepoint_on_path(self, board, start, target):
+        """BFS from start to target, return the first chokepoint cell on the path.
+        Returns (chokepoint_loc, distance) or (None, 999)."""
+        if start == target:
+            return None, 999
+        visited = {start}
+        parent = {}
+        queue = deque([start])
+        found = False
+        while queue:
+            loc = queue.popleft()
+            if loc == target:
+                found = True
+                break
+            for d in Direction.cardinals():
+                nxt = loc + d
+                if nxt in visited or board.oob(nxt):
+                    continue
+                c = board.cells[nxt.r][nxt.c]
+                if c.is_wall:
+                    continue
+                visited.add(nxt)
+                parent[nxt] = loc
+                queue.append(nxt)
+        if not found:
+            return None, 999
+        # Trace path back, find chokepoints
+        path = []
+        cur = target
+        while cur != start:
+            path.append(cur)
+            cur = parent[cur]
+        path.reverse()
+        for i, cell in enumerate(path):
+            if self._is_chokepoint(board, cell):
+                return cell, i + 1
+        return None, 999
 
     # ===============================================================
     # UTILITIES
