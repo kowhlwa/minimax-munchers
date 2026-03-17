@@ -18,7 +18,20 @@ class PlayerController:
         self._map_info = None  # cached map classification
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
-        # First-move advantage is worth ~6 stamina for hill rushing
+        if len(board.hills) == 0:
+            return 0
+        # Aggressive bid — first move is critical for hill rushing
+        me = board.get_player(player_parity)
+        min_hill_dist = 999
+        for hill in board.hills.values():
+            for hloc in hill.cells:
+                d = abs(me.loc.r - hloc.r) + abs(me.loc.c - hloc.c)
+                if d < min_hill_dist:
+                    min_hill_dist = d
+        if min_hill_dist <= 3:
+            return 15
+        elif min_hill_dist <= 6:
+            return 10
         return 6
 
     def play(
@@ -32,6 +45,16 @@ class PlayerController:
         actions = []
         painted = {}
         opp_reach = min(3, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
+        round_num = board.current_round
+        approaching_sudden_death = round_num >= 400
+        in_sudden_death = board.turn_count > GameConstants.GLOBAL_DECAY_TURN_THRESHOLD
+
+        # === MAP CLASSIFICATION (cached) — must be early for wall_ratio usage ===
+        if self._map_info is None:
+            self._map_info = self._classify_map(board)
+        mi = self._map_info
+        wall_ratio = mi['wall_ratio']
+        maze_map = mi['maze']
 
         # === KILL CHECK (always first) ===
         kill = self._try_kill(board, me, opp, pp, stamina)
@@ -43,7 +66,9 @@ class PlayerController:
         near_any_hill = self._near_hill(board, pos, pp, radius=4)
 
         # === ESCAPE: on enemy territory near opponent — but NOT if near a hill ===
-        if not near_any_hill and cell.owner_parity == -pp and self._md(pos, opp.loc) <= 3:
+        # On maze maps, increase escape trigger range since corridors limit escape routes
+        escape_range = 4 if maze_map else 3
+        if not near_any_hill and cell.owner_parity == -pp and self._md(pos, opp.loc) <= escape_range:
             esc = self._escape_dir(board, pos, opp.loc, pp)
             if esc:
                 return [Action.Move(esc)]
@@ -54,10 +79,7 @@ class PlayerController:
             if ret:
                 return [Action.Move(ret)]
 
-        # === MAP CLASSIFICATION (cached) ===
-        if self._map_info is None:
-            self._map_info = self._classify_map(board)
-        mi = self._map_info
+        # mi already set at top of play()
 
         # === DISTANCES ===
         my_dist = self._bfs(board, pos, pp)
@@ -77,15 +99,23 @@ class PlayerController:
         defend = self._defend_target(board, pp, me, opp, my_dist, dom_needed, their_hills)
         attack, attack_hid = self._pick_attack_target(board, pp, me, opp, my_dist, opp_dist, dom_needed)
 
-        # Prioritize defense when opponent is close to domination
+        # Prefer attack for faster closing — only defend when opponent threatens domination
         target = None
         chosen_hid = None
         if defend and attack:
             dd = my_dist.get(defend, 999)
             ad = my_dist.get(attack, 999)
-            if their_hills + 1 >= dom_needed or dd <= ad + 2:
+            if their_hills + 1 >= dom_needed:
+                # Must defend — opponent is about to dominate
                 target = defend
-                chosen_hid = None  # defense doesn't set commitment
+                chosen_hid = None
+            elif our_hills + 1 >= dom_needed and ad <= dd + 4:
+                # We're close to domination — push for the win
+                target = attack
+                chosen_hid = attack_hid
+            elif dd <= ad + 2:
+                target = defend
+                chosen_hid = None
             else:
                 target = attack
                 chosen_hid = attack_hid
@@ -104,9 +134,13 @@ class PlayerController:
         # All hills ours — territory for tiebreak
         if target is None:
             if our_hills >= dom_needed:
-                return self._play_territory(board, pp, me, opp, my_dist, stamina)
-            # No hill target — fall back to territory mode (powerups found naturally)
-            return self._play_territory(board, pp, me, opp, my_dist, stamina)
+                return self._play_territory(board, pp, me, opp, my_dist, stamina, in_sudden_death)
+            # No hill target — fall back to territory mode
+            return self._play_territory(board, pp, me, opp, my_dist, stamina, in_sudden_death)
+
+        # In sudden death with hill lead — maximize territory for regen instead of risky attacks
+        if in_sudden_death and our_hills > their_hills and not (their_hills + 1 >= dom_needed):
+            return self._play_territory(board, pp, me, opp, my_dist, stamina, in_sudden_death)
 
         td = my_dist.get(target, 999)
 
@@ -161,9 +195,16 @@ class PlayerController:
         if neutral_hills_exist:
             max_layers = 2  # always rush neutral hills over reinforcing
         elif not large_map:
-            max_layers = 2 if not contested else 3  # small maps: lean & fast
+            if contested and stamina >= 60:
+                max_layers = 4
+            elif contested:
+                max_layers = 3
+            else:
+                max_layers = 2
+        elif contested and stamina >= 60:
+            max_layers = 4  # full reinforcement when contesting and can afford it
         elif contested:
-            max_layers = 3  # opponent actively contesting — reinforce more
+            max_layers = 3
         else:
             max_layers = 2  # default: don't over-layer
 
@@ -192,21 +233,30 @@ class PlayerController:
                     td = my_dist.get(target, 999)
 
         # === STAMINA BUDGET ===
-        # Maze maps: paths are much longer than manhattan distance, conserve stamina
+        # Aggressive budgets for faster closing — spend stamina to win, not hoard it
+        # Scale buffer by wall density: more walls = longer real paths = need more stamina reserve
         if maze_map:
-            buf = 25 if td > 3 else 15
+            buf = 20 if td > 3 else 10
         elif td > 5:
-            buf = 55
+            buf = 40
         elif td > 2:
-            buf = 30
+            buf = 20
         else:
-            buf = 15
+            buf = 10
 
         if large_map and td > 8 and not maze_map:
-            buf = 35
+            buf = 30
 
         if on_target_hill and contested:
-            buf = 10
+            buf = 5
+
+        # Adaptive wall density scaling: 0% walls → 1.0x, 30% → 1.3x, 45% → 1.45x, cap 1.5x
+        wall_mult = min(1.0 + wall_ratio, 1.5)
+        buf = int(buf * wall_mult)
+
+        # When approaching sudden death or in it, be more aggressive to close out
+        if approaching_sudden_death and not in_sudden_death:
+            buf = max(buf - 10, 5)
 
         # === SHOULD WE PAINT TERRITORY EN ROUTE? ===
         # When all hills claimed, paint territory while heading to contest opponent hills
@@ -259,9 +309,10 @@ class PlayerController:
             if paint_territory_en_route or maze_map or (large_map and td > 3):
                 actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target, trail_layers)
 
-            # 2nd move — on maze maps, require more stamina headroom
-            move2_threshold = GameConstants.EXTRA_MOVE_COST + buf + (15 if maze_map else 5)
-            if td > 2 and stamina >= move2_threshold:
+            # 2nd move — lower threshold for faster closing
+            # On high-wall maps, require more headroom (corridors are longer)
+            move2_threshold = GameConstants.EXTRA_MOVE_COST + buf + (10 if maze_map else 0) + int(15 * wall_ratio)
+            if td > 1 and stamina >= move2_threshold:
                 d2 = _pick_step(p1)
                 if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     # Pre-paint destination if neutral and opponent within reach
@@ -285,7 +336,8 @@ class PlayerController:
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target, trail_layers)
 
                     # 3rd move — skip on maze maps (too expensive, paths are long)
-                    if not maze_map and td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
+                    # On high-wall maps, require more headroom for 3rd move
+                    if not maze_map and td > 3 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 10, 10) + int(20 * wall_ratio):
                         d3 = _pick_step(p2)
                         if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             # Pre-paint destination if neutral and opponent within reach
@@ -644,8 +696,9 @@ class PlayerController:
     # TERRITORY PLAY
     # ===============================================================
 
-    def _play_territory(self, board, pp, me, opp, my_dist, stamina):
-        """Expand territory for tiebreak. Used when no hills or all hills captured."""
+    def _play_territory(self, board, pp, me, opp, my_dist, stamina, in_sudden_death=False):
+        """Expand territory for tiebreak. Used when no hills or all hills captured.
+        In sudden death: prioritize staying near friendly territory for regen."""
         actions = []
         painted = {}
         pos = me.loc
@@ -656,7 +709,6 @@ class PlayerController:
                 hill = board.hills[hid]
                 oc = sum(1 for h in hill.cells if board.cells[h.r][h.c].owner_parity == -pp)
                 if oc > 0:
-                    # Find nearest contested cell
                     nl = None
                     nd = 999
                     for hloc in hill.cells:
@@ -668,26 +720,29 @@ class PlayerController:
                     if nl:
                         return self._rush_to(board, pp, me, opp, my_dist, stamina, nl)
 
-        # Paint at current position
-        actions, stamina = self._paint_expand(board, pp, pos, actions, stamina, painted, 15)
+        # In sudden death: keep tighter stamina buffer and prefer painting near self for regen
+        buf = 25 if in_sudden_death else 15
 
-        # Find nearest frontier cell (unowned, adjacent to our territory)
-        target = self._frontier_target(board, pp, my_dist, pos)
+        # Paint at current position
+        actions, stamina = self._paint_expand(board, pp, pos, actions, stamina, painted, buf)
+
+        # Find nearest frontier cell — in sudden death, prefer cells near existing territory
+        target = self._frontier_target(board, pp, my_dist, pos, prefer_adjacent=in_sudden_death)
         if target:
             d1 = self._step_toward(board, pos, target, pp, opp.loc)
             if d1:
                 actions.append(Action.Move(d1))
                 p1 = pos + d1
-                actions, stamina = self._paint_expand(board, pp, p1, actions, stamina, painted, 15)
+                actions, stamina = self._paint_expand(board, pp, p1, actions, stamina, painted, buf)
 
                 td = my_dist.get(target, 999)
-                if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + 20:
+                if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
                     d2 = self._step_toward(board, p1, target, pp, opp.loc)
                     if d2 and not self._is_dangerous(board, p1 + d2, opp.loc, pp):
                         actions.append(Action.Move(d2))
                         stamina -= GameConstants.EXTRA_MOVE_COST
                         p2 = p1 + d2
-                        actions, stamina = self._paint_expand(board, pp, p2, actions, stamina, painted, 15)
+                        actions, stamina = self._paint_expand(board, pp, p2, actions, stamina, painted, buf)
 
         if not any(isinstance(a, Action.Move) for a in actions):
             fb = self._fallback_move(board, pp, me, opp)
@@ -739,8 +794,9 @@ class PlayerController:
 
         return actions if actions else [Action.Move(Direction.UP)]
 
-    def _frontier_target(self, board, pp, my_dist, pos):
-        """Find best unowned cell adjacent to our territory — for expansion."""
+    def _frontier_target(self, board, pp, my_dist, pos, prefer_adjacent=False):
+        """Find best unowned cell adjacent to our territory — for expansion.
+        prefer_adjacent: in sudden death, heavily favor cells next to friendly territory for regen."""
         best = None
         best_score = -9999
 
@@ -749,20 +805,23 @@ class PlayerController:
             if c.is_wall or c.owner_parity == pp or loc == pos:
                 continue
 
-            adj_friendly = any(
-                not board.oob(loc + dr) and board.cells[(loc + dr).r][(loc + dr).c].owner_parity == pp
-                for dr in Direction.cardinals()
-            )
+            adj_friendly = 0
+            for dr in Direction.cardinals():
+                nl = loc + dr
+                if not board.oob(nl) and board.cells[nl.r][nl.c].owner_parity == pp:
+                    adj_friendly += 1
 
             score = -d * 3
             if c.owner_parity == 0:
                 score += 20
-            if adj_friendly:
-                score += 25  # grow outward from existing territory
+            if adj_friendly > 0:
+                score += 25
+                if prefer_adjacent:
+                    score += adj_friendly * 15  # strongly prefer dense friendly areas for regen
             if c.hill_id != 0:
                 score += 40
             if c.powerup and d <= 2:
-                score += 20  # mild bonus, don't chase far
+                score += 20
 
             if score > best_score:
                 best_score = score
@@ -865,12 +924,27 @@ class PlayerController:
         final = self._simpos(board, start_pos, actions)
         fc = board.cells[final.r][final.c]
         opp_reach = min(3, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
+        mi = self._map_info
+        maze_map = mi['maze'] if mi else False
+
+        def _is_corridor(loc):
+            """A cell with <=2 passable neighbors — trapped in a corridor."""
+            passable = 0
+            for d in Direction.cardinals():
+                nxt = loc + d
+                if not board.oob(nxt) and not board.cells[nxt.r][nxt.c].is_wall:
+                    passable += 1
+            return passable <= 2
 
         def _is_safe(loc):
             if board.oob(loc):
                 return False
             c = board.cells[loc.r][loc.c]
             if c.owner_parity == pp and c.beacon_parity != -pp:
+                # On maze maps, corridor cells near opponent are unsafe even if painted
+                # because we have limited escape routes
+                if maze_map and _is_corridor(loc) and self._md(loc, opp.loc) <= 4:
+                    return False
                 return True
             if self._md(loc, opp.loc) > opp_reach:
                 return True
@@ -1143,7 +1217,9 @@ class PlayerController:
         if start == target:
             return None
 
-        opp_reach = 2  # conservative collision range
+        mi = self._map_info
+        # On maze maps, increase conservative collision range since corridors limit escape
+        opp_reach = 3 if (mi and mi['maze']) else 2
 
         # Score each possible first step, then BFS-verify it leads to target
         candidates = []
@@ -1225,7 +1301,7 @@ class PlayerController:
             'area': area,
             'large': area >= 400,
             'small': area < 300,
-            'maze': wall_ratio >= 0.30,  # 30%+ walls = maze-like
+            'maze': wall_ratio >= 0.40,  # 40%+ walls = true maze (spiral/disjoint are corridors, not mazes)
             'wall_ratio': wall_ratio,
             'num_hills': len(board.hills),
         }
