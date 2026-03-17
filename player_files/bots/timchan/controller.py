@@ -14,6 +14,7 @@ class PlayerController:
 
     def __init__(self, player_parity: int, time_left):
         self.pp = player_parity
+        self._committed_hill_id = None  # hill ID we're committed to capturing
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
         # First-move advantage is worth ~6 stamina for hill rushing
@@ -65,21 +66,33 @@ class PlayerController:
 
         dom_needed = math.ceil(total_hills * GameConstants.DOMINATION_WIN_THRESHOLD)
 
-        # === TARGET SELECTION ===
+        # === TARGET SELECTION (with commitment) ===
         defend = self._defend_target(board, pp, me, opp, my_dist, dom_needed, their_hills)
-        attack = self._pick_attack_target(board, pp, me, opp, my_dist, opp_dist, dom_needed)
+        attack, attack_hid = self._pick_attack_target(board, pp, me, opp, my_dist, opp_dist, dom_needed)
 
         # Prioritize defense when opponent is close to domination
         target = None
+        chosen_hid = None
         if defend and attack:
             dd = my_dist.get(defend, 999)
             ad = my_dist.get(attack, 999)
             if their_hills + 1 >= dom_needed or dd <= ad + 2:
                 target = defend
+                chosen_hid = None  # defense doesn't set commitment
             else:
                 target = attack
+                chosen_hid = attack_hid
+        elif attack:
+            target = attack
+            chosen_hid = attack_hid
         else:
-            target = defend or attack
+            target = defend
+
+        # Update hill commitment
+        if chosen_hid is not None:
+            self._committed_hill_id = chosen_hid
+        elif target is None:
+            self._committed_hill_id = None
 
         # All hills ours — territory for tiebreak
         if target is None:
@@ -99,6 +112,10 @@ class PlayerController:
             target = pu
             td = my_dist.get(pu, 999)
 
+        # === MAP SIZE ===
+        area = board.board_size.r * board.board_size.c
+        large_map = area >= 400  # ~20x20+
+
         # === STAMINA BUDGET: reserve more when far from hill ===
         if td > 5:
             buf = 55
@@ -107,11 +124,19 @@ class PlayerController:
         else:
             buf = 15
 
+        # On large maps with distant hills, lower the buffer so we can paint a
+        # trail for regen — the extra regen pays for itself over long distances.
+        if large_map and td > 8:
+            buf = 35
+
         # === PRE-MOVE PAINTING ===
         actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf)
 
-        # Light trail: paint 1 new cell toward target if stamina is healthy
-        if stamina > 70 and td > 2:
+        # Trail painting: on large maps, always paint 1 new cell per stop for regen.
+        # On small maps, only when stamina is healthy.
+        if large_map and td > 2:
+            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
+        elif stamina > 70 and td > 2:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
 
         # === MOVEMENT ===
@@ -125,6 +150,10 @@ class PlayerController:
             # Paint hill cells at new position
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf)
 
+            # Trail at new position (large maps)
+            if large_map and td > 3:
+                actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
+
             # 2nd move — skip danger check when contesting a hill
             if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
                 d2 = self._step_toward(board, p1, target, pp, opp.loc, hill_target=targeting_hill)
@@ -134,6 +163,9 @@ class PlayerController:
                     p2 = p1 + d2
 
                     actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 15))
+
+                    if large_map and td > 5:
+                        actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
 
                     # 3rd move
                     if td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
@@ -148,8 +180,10 @@ class PlayerController:
         final = self._simpos(board, pos, actions)
         actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 15)
 
-        # If on hill and all adjacent hill cells painted, paint non-hill for regen
+        # Paint trail at final position if on a hill or on large map
         if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
+            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
+        elif large_map and stamina > 30:
             actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
 
         # === GUARANTEE MOVE ===
@@ -165,10 +199,19 @@ class PlayerController:
     # ===============================================================
 
     def _pick_attack_target(self, board, pp, me, opp, my_dist, opp_dist, dom_needed):
-        """Pick best uncaptured hill to rush — race-aware scoring."""
+        """Pick best uncaptured hill to rush — race-aware scoring with commitment.
+        Returns (target_loc, hill_id) or (None, None)."""
         best = None
+        best_hid = None
         best_score = -9999
         our_hills = len(me.controlled_hills)
+
+        # Validate current commitment: abandon if hill is now ours or doesn't exist
+        committed = self._committed_hill_id
+        if committed is not None:
+            if committed not in board.hills or board.hills[committed].controller_parity == pp:
+                self._committed_hill_id = None
+                committed = None
 
         for hid, hill in board.hills.items():
             if hill.controller_parity == pp:
@@ -197,7 +240,6 @@ class PlayerController:
             hs = len(hill.cells)
             needed = math.ceil(hs * GameConstants.HILL_CONTROL_THRESHOLD) + 1
             to_paint = max(0, needed - our_cells)
-            # Cost to capture: travel + painting time (each unpainted cell ~ 1.5 turns)
             our_cost = nearest_dist + to_paint * 1.5
 
             # Opponent race
@@ -212,20 +254,24 @@ class PlayerController:
                     opp_nearest = d
             opp_cost = opp_nearest + opp_to_paint * 1.5
 
-            race_adv = opp_cost - our_cost  # positive = we're faster
-            size_bonus = max(0, 10 - hs) * 3  # smaller hills are easier
+            race_adv = opp_cost - our_cost
+            size_bonus = max(0, 10 - hs) * 3
             close_to_dom = 80 if (our_hills + 1 >= dom_needed) else 0
             steal_bonus = 40 if hill.controller_parity == -pp else 0
-            # Late game urgency
             late_bonus = 30 if board.current_round > 400 else 0
 
-            score = race_adv * 12 + size_bonus + close_to_dom + steal_bonus + late_bonus - nearest_dist * 2
+            # Commitment bonus: strongly prefer the hill we're already heading to.
+            # Only switch if another hill is SIGNIFICANTLY better.
+            commit_bonus = 60 if (hid == committed) else 0
+
+            score = race_adv * 12 + size_bonus + close_to_dom + steal_bonus + late_bonus + commit_bonus - nearest_dist * 2
 
             if score > best_score:
                 best_score = score
                 best = nearest_loc
+                best_hid = hid
 
-        return best
+        return best, best_hid
 
     def _defend_target(self, board, pp, me, opp, my_dist, dom_needed, their_hills):
         """Find our most threatened hill to defend."""
