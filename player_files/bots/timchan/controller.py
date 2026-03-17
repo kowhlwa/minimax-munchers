@@ -717,34 +717,29 @@ class PlayerController:
     # ===============================================================
 
     def _try_kill(self, board, me, opp, pp, stam):
-        """Check kill opportunities: adjacent on our cell, paint-then-kill, 2-step."""
-        # Direct: opponent adjacent on our cell
-        for d in Direction.cardinals():
-            nxt = me.loc + d
-            if board.oob(nxt) or nxt != opp.loc:
-                continue
-            c = board.cells[nxt.r][nxt.c]
-            if c.is_wall:
-                continue
-            if c.owner_parity == pp:
-                return [Action.Move(d)]
+        """Check kill opportunities — including hunting vulnerable opponents."""
+        oc = board.cells[opp.loc.r][opp.loc.c]
+        dist = self._md(me.loc, opp.loc)
 
-        # Paint-then-kill: opponent adjacent on neutral cell
-        if stam >= GameConstants.PAINT_STAMINA_COST:
+        # === ADJACENT KILLS ===
+        if dist == 1:
             for d in Direction.cardinals():
                 nxt = me.loc + d
-                if board.oob(nxt) or nxt != opp.loc:
+                if nxt != opp.loc:
                     continue
                 c = board.cells[nxt.r][nxt.c]
                 if c.is_wall:
                     continue
-                if c.owner_parity == 0 and c.beacon_parity == 0:
+                # Direct: opponent on our cell
+                if c.owner_parity == pp:
+                    return [Action.Move(d)]
+                # Paint-then-kill: opponent on neutral cell
+                if c.owner_parity == 0 and c.beacon_parity == 0 and stam >= GameConstants.PAINT_STAMINA_COST:
                     return [Action.Paint(nxt), Action.Move(d)]
 
-        # 2-step: opponent on our cell, we're 2 away
-        if stam >= GameConstants.EXTRA_MOVE_COST + 20:
-            oc = board.cells[opp.loc.r][opp.loc.c]
-            if oc.owner_parity == pp:
+        # === MULTI-STEP KILLS: opponent on our cell ===
+        if oc.owner_parity == pp:
+            if dist == 2 and stam >= GameConstants.EXTRA_MOVE_COST + 20:
                 for d1 in Direction.cardinals():
                     mid = me.loc + d1
                     if board.oob(mid) or board.cells[mid.r][mid.c].is_wall or mid == opp.loc:
@@ -752,11 +747,7 @@ class PlayerController:
                     for d2 in Direction.cardinals():
                         if mid + d2 == opp.loc:
                             return [Action.Move(d1), Action.Move(d2)]
-
-        # 3-step: opponent on our cell, we're 3 away
-        if stam >= GameConstants.EXTRA_MOVE_COST + GameConstants.EXTRA_MOVE_COST * 2 + 20:
-            oc = board.cells[opp.loc.r][opp.loc.c]
-            if oc.owner_parity == pp and self._md(me.loc, opp.loc) == 3:
+            if dist == 3 and stam >= GameConstants.EXTRA_MOVE_COST * 3 + 20:
                 for d1 in Direction.cardinals():
                     p1 = me.loc + d1
                     if board.oob(p1) or board.cells[p1.r][p1.c].is_wall or p1 == opp.loc:
@@ -769,6 +760,42 @@ class PlayerController:
                             if p2 + d3 == opp.loc:
                                 return [Action.Move(d1), Action.Move(d2), Action.Move(d3)]
 
+        # === HUNT: opponent on neutral cell within range — paint & rush ===
+        # If opponent is on a neutral cell (vulnerable to collision), exploit it
+        if oc.owner_parity == 0 and oc.beacon_parity == 0 and oc.owner_parity != -pp:
+            # 2-step: move adjacent, paint their cell, move in
+            if dist == 2 and stam >= GameConstants.EXTRA_MOVE_COST + GameConstants.PAINT_STAMINA_COST + 15:
+                for d1 in Direction.cardinals():
+                    mid = me.loc + d1
+                    if board.oob(mid) or board.cells[mid.r][mid.c].is_wall or mid == opp.loc:
+                        continue
+                    if self._md(mid, opp.loc) == 1:
+                        for d2 in Direction.cardinals():
+                            if mid + d2 == opp.loc:
+                                return [Action.Move(d1), Action.Paint(opp.loc), Action.Move(d2)]
+            # 3-step: move, move adjacent, paint, move in
+            if dist == 3 and stam >= GameConstants.EXTRA_MOVE_COST * 3 + GameConstants.PAINT_STAMINA_COST + 10:
+                for d1 in Direction.cardinals():
+                    p1 = me.loc + d1
+                    if board.oob(p1) or board.cells[p1.r][p1.c].is_wall or p1 == opp.loc:
+                        continue
+                    for d2 in Direction.cardinals():
+                        p2 = p1 + d2
+                        if board.oob(p2) or board.cells[p2.r][p2.c].is_wall or p2 == opp.loc:
+                            continue
+                        if self._md(p2, opp.loc) == 1:
+                            for d3 in Direction.cardinals():
+                                if p2 + d3 == opp.loc:
+                                    return [Action.Move(d1), Action.Move(d2), Action.Paint(opp.loc), Action.Move(d3)]
+
+        # === HUNT: opponent on opponent-owned cell near our territory ===
+        # If we can paint the cell they're on (it's neutral) from 2 steps away
+        # then rush — they die on "our" cell
+        if oc.owner_parity == -pp and dist == 1:
+            # If we can erase their cell, we'd need 50 stamina — too expensive usually
+            # But if they're on a 1-layer cell, stepping weakens to 0, next turn we paint & kill
+            pass  # handled by normal movement + collision safety
+
         return None
 
     # ===============================================================
@@ -776,25 +803,32 @@ class PlayerController:
     # ===============================================================
 
     def _ensure_safe_ending(self, board, pp, start_pos, opp, actions, stamina, painted):
-        """Prevent ending turn on a cell where opponent can kill us.
-        Dangerous cells: neutral (opp moves in = they win), opponent-owned/beacon
-        (we're on their cell = they win collision)."""
+        """ABSOLUTE RULE: never end turn on a non-owned cell if opponent can reach us.
+        Dying is always worse than any hill or territory loss."""
         final = self._simpos(board, start_pos, actions)
         fc = board.cells[final.r][final.c]
-        opp_dist = self._md(final, opp.loc)
 
         # How far can the opponent reach in one turn?
         opp_reach = min(3, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
 
-        # Safe conditions:
-        # - We own the cell (we win any collision)
-        # - Opponent can't reach us
-        if fc.owner_parity == pp and fc.beacon_parity != -pp:
-            return actions, stamina
-        if opp_dist > opp_reach:
+        # Check: are we safe?
+        def _is_safe(loc):
+            if board.oob(loc):
+                return False
+            c = board.cells[loc.r][loc.c]
+            # Our cell without opponent beacon = safe (we win collisions)
+            if c.owner_parity == pp and c.beacon_parity != -pp:
+                return True
+            # Out of opponent reach = safe
+            if self._md(loc, opp.loc) > opp_reach:
+                return True
+            return False
+
+        if _is_safe(final):
             return actions, stamina
 
-        # UNSAFE: we're on neutral/opponent cell within opponent's reach.
+        # === UNSAFE — we MUST fix this. Dying is the worst outcome. ===
+
         # Find last Move in actions
         last_move_idx = None
         for i in range(len(actions) - 1, -1, -1):
@@ -803,11 +837,13 @@ class PlayerController:
                 break
 
         if last_move_idx is None:
+            # No moves — we're stuck at start_pos. Try to paint current cell's neighbor
+            # and stay put, or just accept (can't fix without a move).
             return actions, stamina
 
         pre_pos = self._simpos(board, start_pos, actions[:last_move_idx])
 
-        # Strategy 1: pre-paint the final cell (only works for neutral, no beacon)
+        # Strategy 1: pre-paint the final cell before moving onto it
         if (fc.owner_parity == 0 and fc.beacon_parity == 0
                 and not fc.is_wall
                 and stamina >= GameConstants.PAINT_STAMINA_COST
@@ -817,10 +853,9 @@ class PlayerController:
             painted[final] = painted.get(final, 0) + 1
             return actions, stamina
 
-        # Strategy 2: swap last move to end on a safe cell instead.
-        # Even near hills — dying is worse than losing one step of progress.
+        # Strategy 2: swap last move to ANY safe cell
         best_dir = None
-        best_score = -999
+        best_score = -9999
         for d in Direction.cardinals():
             nxt = pre_pos + d
             if board.oob(nxt):
@@ -828,38 +863,66 @@ class PlayerController:
             c = board.cells[nxt.r][nxt.c]
             if c.is_wall:
                 continue
-            # Never step onto opponent's location on their cell
             if nxt == opp.loc and c.owner_parity != pp:
+                continue
+            if c.beacon_parity == -pp:
                 continue
 
             nd = self._md(nxt, opp.loc)
-            score = 0
 
             if c.owner_parity == pp and c.beacon_parity != -pp:
-                score += 100  # our cell — collision safe
-            elif c.owner_parity == -pp or c.beacon_parity == -pp:
-                score -= 200  # opponent cell/beacon — lethal
+                score = 200  # our cell — guaranteed safe
             elif nd > opp_reach:
-                score += 60   # neutral but out of reach — safe
+                score = 100  # out of reach — safe
+            elif c.owner_parity == 0:
+                score = -50  # neutral in reach — risky but not instant death
             else:
-                score -= 30   # neutral in reach — risky
+                score = -200  # opponent cell in reach — death
 
-            # Still prefer moving toward the target over backwards
-            if nxt == final:
-                score += 20  # original direction (already tried paint)
-            score += nd  # slight preference for distance from opp
-
+            score += nd  # prefer farther from opp
             if score > best_score:
                 best_score = score
                 best_dir = d
 
-        # Only reroute if we found something actually safe
-        if best_dir and best_score > 0:
+        if best_dir and best_score > -50:
             actions[last_move_idx] = Action.Move(best_dir)
-        elif best_dir and best_score > -100:
-            # Even a mediocre option beats certain death on opponent cell
-            if fc.owner_parity == -pp or fc.beacon_parity == -pp:
-                actions[last_move_idx] = Action.Move(best_dir)
+            return actions, stamina
+
+        # Strategy 3: pre-paint a DIFFERENT adjacent cell from pre_pos and go there
+        if stamina >= GameConstants.PAINT_STAMINA_COST:
+            for d in Direction.cardinals():
+                nxt = pre_pos + d
+                if board.oob(nxt) or nxt == final:
+                    continue
+                c = board.cells[nxt.r][nxt.c]
+                if c.is_wall or c.beacon_parity != 0:
+                    continue
+                if c.owner_parity == 0 and self._md(nxt, opp.loc) <= opp_reach:
+                    # Paint it then move there
+                    actions[last_move_idx] = Action.Move(d)
+                    actions.insert(last_move_idx, Action.Paint(nxt))
+                    stamina -= GameConstants.PAINT_STAMINA_COST
+                    painted[nxt] = painted.get(nxt, 0) + 1
+                    return actions, stamina
+
+        # Strategy 4: remove last move entirely — stay at pre_pos if it's safer
+        if _is_safe(pre_pos):
+            actions.pop(last_move_idx)
+            return actions, stamina
+
+        # Strategy 5: if even pre_pos isn't safe, try removing more moves
+        # Walk back through moves until we find a safe position
+        for trim in range(len(actions) - 1, -1, -1):
+            if isinstance(actions[trim], Action.Move):
+                test_pos = self._simpos(board, start_pos, actions[:trim])
+                if _is_safe(test_pos):
+                    # Remove all actions from trim onward
+                    actions = actions[:trim]
+                    return actions, stamina
+
+        # Last resort: accept the risk (shouldn't reach here often)
+        if best_dir:
+            actions[last_move_idx] = Action.Move(best_dir)
 
         return actions, stamina
 
