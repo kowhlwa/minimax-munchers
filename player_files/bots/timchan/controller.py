@@ -138,6 +138,28 @@ class PlayerController:
         # reinforce: add layers when opponent threatens the hill
         reinforce = contested or approaching
 
+        # === NEUTRAL HILLS CHECK ===
+        # Are there uncaptured hills that neither player controls?
+        neutral_hills_exist = any(
+            h.controller_parity == 0 for h in board.hills.values()
+        )
+        # All hills are claimed (by us or opponent) — contest + territory mode
+        all_hills_claimed = not neutral_hills_exist and total_hills > 0
+
+        # === MAX LAYERS — don't over-reinforce ===
+        # Small maps: cap at 2 layers for speed, dominate early
+        # Neutral hills exist: cap at 2 — rush to claim them instead of layering
+        # All hills claimed + contested: reinforce to 3 (opponent is actively fighting)
+        # All hills claimed + not contested: cap at 2, spend stamina on territory
+        if neutral_hills_exist:
+            max_layers = 2  # always rush neutral hills over reinforcing
+        elif not large_map:
+            max_layers = 2 if not contested else 3  # small maps: lean & fast
+        elif contested:
+            max_layers = 3  # opponent actively contesting — reinforce more
+        else:
+            max_layers = 2  # default: don't over-layer
+
         # === WHEN ON/NEAR A HILL: retarget to walk across it ===
         cur_hill_id = board.cells[pos.r][pos.c].hill_id
         on_target_hill = (target_hill_obj and cur_hill_id == target_cell.hill_id) if target_cell else False
@@ -164,11 +186,15 @@ class PlayerController:
         if on_target_hill and contested:
             buf = 10
 
-        # === PRE-MOVE PAINTING ===
-        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, reinforce)
+        # === SHOULD WE PAINT TERRITORY EN ROUTE? ===
+        # When all hills claimed, paint territory while heading to contest opponent hills
+        paint_territory_en_route = all_hills_claimed or danger_zone
 
-        # Trail painting — but when in danger zone, always paint for collision safety
-        if danger_zone:
+        # === PRE-MOVE PAINTING ===
+        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, reinforce, max_layers)
+
+        # Trail painting: always when contesting claimed hills, danger zone, or large maps
+        if paint_territory_en_route:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
         elif large_map and td > 2:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
@@ -178,10 +204,6 @@ class PlayerController:
         # === MOVEMENT ===
         targeting_hill = board.cells[target.r][target.c].hill_id != 0 if not board.oob(target) else False
 
-        # Choose step function:
-        # - On contested hill: collision-safe hill walking
-        # - In danger zone (close to opp): prefer our own paint
-        # - Otherwise: normal pathfinding
         def _pick_step(from_pos):
             if on_target_hill and contested:
                 return self._safe_hill_step(board, from_pos, target, pp, opp.loc)
@@ -195,12 +217,9 @@ class PlayerController:
             actions.append(Action.Move(d1))
             p1 = pos + d1
 
-            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce)
+            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce, max_layers)
 
-            # In danger zone, paint trail at every stop for collision safety
-            if danger_zone:
-                actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
-            elif large_map and td > 3:
+            if paint_territory_en_route or (large_map and td > 3):
                 actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
 
             # 2nd move
@@ -211,9 +230,9 @@ class PlayerController:
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
-                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 10), reinforce)
+                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 10), reinforce, max_layers)
 
-                    if danger_zone or (large_map and td > 5):
+                    if paint_territory_en_route or (large_map and td > 5):
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
 
                     # 3rd move
@@ -223,15 +242,15 @@ class PlayerController:
                             actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
-                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce)
+                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce, max_layers)
 
-        # === POST-MOVE: paint remaining hill cells ===
+        # === POST-MOVE ===
         final = self._simpos(board, pos, actions)
-        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 10, reinforce)
+        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 10, reinforce, max_layers)
 
         if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
             actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
-        elif danger_zone or (large_map and stamina > 30):
+        elif paint_territory_en_route or (large_map and stamina > 30):
             actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
 
         # === GUARANTEE MOVE ===
@@ -399,12 +418,14 @@ class PlayerController:
     # PAINTING
     # ===============================================================
 
-    def _paint_hill_cells(self, board, pp, pos, actions, stamina, painted, buf, contested=False):
+    def _paint_hill_cells(self, board, pp, pos, actions, stamina, painted, buf, contested=False, max_layers=None):
         """Paint adjacent unpainted hill cells.
         If uncontested: only paint NEW cells (single layer, maximize coverage).
-        If contested: also reinforce existing cells with layers."""
+        If contested: also reinforce existing cells up to max_layers.
+        max_layers: cap reinforcement depth (None = game max)."""
         COST = GameConstants.PAINT_STAMINA_COST
         MV = GameConstants.MAX_PAINT_VALUE
+        cap = max_layers if max_layers is not None else MV
 
         while stamina - COST >= buf:
             best = None
@@ -422,7 +443,7 @@ class PlayerController:
 
                 base = abs(c.paint_value) if c.owner_parity == pp else 0
                 added = painted.get(t, 0)
-                if base + added >= MV:
+                if base + added >= cap:
                     continue
 
                 is_new = (c.owner_parity == 0 and added == 0)
@@ -431,7 +452,7 @@ class PlayerController:
                     score = 200
                 elif contested:
                     # Reinforce only when opponent is nearby contesting
-                    score = 80 + (MV - base - added) * 10
+                    score = 80 + (cap - base - added) * 10
                 else:
                     # Uncontested: skip reinforcement — save stamina for coverage
                     continue
