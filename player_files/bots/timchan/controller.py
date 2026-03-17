@@ -35,15 +35,18 @@ class PlayerController:
         if kill is not None:
             return kill
 
-        # === ESCAPE: on enemy territory near opponent ===
+        # === Check if near a hill (suppress flee behavior) ===
         cell = board.cells[pos.r][pos.c]
-        if cell.owner_parity == -pp and self._md(pos, opp.loc) <= 3:
+        near_any_hill = self._near_hill(board, pos, pp, radius=4)
+
+        # === ESCAPE: on enemy territory near opponent — but NOT if near a hill ===
+        if not near_any_hill and cell.owner_parity == -pp and self._md(pos, opp.loc) <= 3:
             esc = self._escape_dir(board, pos, opp.loc, pp)
             if esc:
                 return [Action.Move(esc)]
 
-        # === LOW STAMINA RETREAT ===
-        if stamina < 35 and cell.owner_parity != pp:
+        # === LOW STAMINA RETREAT — but NOT if near a hill ===
+        if not near_any_hill and stamina < 35 and cell.owner_parity != pp:
             ret = self._retreat_dir(board, pos, opp.loc, pp)
             if ret:
                 return [Action.Move(ret)]
@@ -112,7 +115,9 @@ class PlayerController:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
 
         # === MOVEMENT ===
-        d1 = self._step_toward(board, pos, target, pp, opp.loc)
+        # When target is a hill cell, be aggressive — don't avoid opponent territory
+        targeting_hill = board.cells[target.r][target.c].hill_id != 0 if not board.oob(target) else False
+        d1 = self._step_toward(board, pos, target, pp, opp.loc, hill_target=targeting_hill)
         if d1:
             actions.append(Action.Move(d1))
             p1 = pos + d1
@@ -120,10 +125,10 @@ class PlayerController:
             # Paint hill cells at new position
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf)
 
-            # 2nd move
+            # 2nd move — skip danger check when contesting a hill
             if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
-                d2 = self._step_toward(board, p1, target, pp, opp.loc)
-                if d2 and not self._is_dangerous(board, p1 + d2, opp.loc, pp):
+                d2 = self._step_toward(board, p1, target, pp, opp.loc, hill_target=targeting_hill)
+                if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     actions.append(Action.Move(d2))
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
@@ -132,8 +137,8 @@ class PlayerController:
 
                     # 3rd move
                     if td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
-                        d3 = self._step_toward(board, p2, target, pp, opp.loc)
-                        if d3 and not self._is_dangerous(board, p2 + d3, opp.loc, pp):
+                        d3 = self._step_toward(board, p2, target, pp, opp.loc, hill_target=targeting_hill)
+                        if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
@@ -683,12 +688,15 @@ class PlayerController:
                 queue.append((nxt, d + 1))
         return dist
 
-    def _step_toward(self, board, start, target, pp, opp_loc):
-        """BFS first-step toward target. Tries safe path first, relaxes if needed."""
+    def _step_toward(self, board, start, target, pp, opp_loc, hill_target=False):
+        """BFS first-step toward target. Tries safe path first, relaxes if needed.
+        If hill_target=True, skip danger avoidance — we want to contest the hill."""
         if start == target:
             return None
 
-        for danger_r in [2, 1, 0]:
+        # When rushing a hill, don't avoid opponent territory — go straight there
+        danger_levels = [1, 0] if hill_target else [2, 1, 0]
+        for danger_r in danger_levels:
             visited = {start}
             queue = deque()
             for d in Direction.cardinals():
@@ -730,6 +738,16 @@ class PlayerController:
     # ===============================================================
     # UTILITIES
     # ===============================================================
+
+    def _near_hill(self, board, pos, pp, radius=4):
+        """Check if any uncaptured hill cell is within radius steps."""
+        for hid, hill in board.hills.items():
+            if hill.controller_parity == pp:
+                continue
+            for hloc in hill.cells:
+                if self._md(pos, hloc) <= radius:
+                    return True
+        return False
 
     def _md(self, a, b):
         return abs(a.r - b.r) + abs(a.c - b.c)
