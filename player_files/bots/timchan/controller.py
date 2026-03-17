@@ -98,48 +98,58 @@ class PlayerController:
         if target is None:
             if our_hills >= dom_needed:
                 return self._play_territory(board, pp, me, opp, my_dist, stamina)
-            pu = self._powerup_nearby(board, my_dist, 5)
-            if pu:
-                target = pu
-            else:
-                return self._play_territory(board, pp, me, opp, my_dist, stamina)
+            # No hill target — fall back to territory mode (powerups found naturally)
+            return self._play_territory(board, pp, me, opp, my_dist, stamina)
 
         td = my_dist.get(target, 999)
 
-        # === POWERUP DETOUR: grab if within 2 steps and closer than target ===
-        pu = self._powerup_nearby(board, my_dist, 2)
-        if pu and my_dist.get(pu, 999) <= min(2, td):
-            target = pu
-            td = my_dist.get(pu, 999)
+        # === POWERUP DETOUR: only if directly on our path (1 step) and stamina low ===
+        if stamina < 50:
+            pu = self._powerup_nearby(board, my_dist, 1)
+            if pu:
+                target = pu
+                td = my_dist.get(pu, 999)
 
         # === MAP SIZE ===
         area = board.board_size.r * board.board_size.c
         large_map = area >= 400  # ~20x20+
 
         # === IS THE TARGET HILL CONTESTED? ===
-        # Contested = opponent is within 6 steps of any cell on the target hill
+        # contested = opponent close enough to threaten the hill
+        # approaching = opponent heading toward hill but not yet on it
         contested = False
+        approaching = False
         target_cell = board.cells[target.r][target.c] if not board.oob(target) else None
+        target_hill_obj = None
         if target_cell and target_cell.hill_id != 0:
             target_hid = target_cell.hill_id
-            hill_obj = board.hills.get(target_hid)
-            if hill_obj:
-                for hloc in hill_obj.cells:
-                    if self._md(hloc, opp.loc) <= 6:
-                        contested = True
-                        break
+            target_hill_obj = board.hills.get(target_hid)
+            if target_hill_obj:
+                opp_hill_dist = min(
+                    (self._md(hloc, opp.loc) for hloc in target_hill_obj.cells),
+                    default=999
+                )
+                if opp_hill_dist <= 4:
+                    contested = True
+                elif opp_hill_dist <= 10:
+                    approaching = True
 
-        # === WHEN ON A HILL UNCONTESTED: retarget to nearest unpainted hill cell ===
-        # This makes the bot walk across the hill painting new cells instead of
-        # layering up the few cells adjacent to where it stopped.
+        # === WHEN ON/NEAR A HILL: retarget to walk across it ===
+        # Works whether contested or not — always find the next cell to claim/reclaim.
         cur_hill_id = board.cells[pos.r][pos.c].hill_id
-        if cur_hill_id != 0 and not contested:
+        on_target_hill = (target_hill_obj and cur_hill_id == target_cell.hill_id) if target_cell else False
+        if cur_hill_id != 0:
             hill_obj = board.hills.get(cur_hill_id)
             if hill_obj and hill_obj.controller_parity != pp:
-                unpainted = self._nearest_unpainted_hill_cell(board, pp, hill_obj, my_dist)
+                unpainted = self._nearest_unclaimed_hill_cell(board, pp, hill_obj, my_dist, contested)
                 if unpainted:
                     target = unpainted
                     td = my_dist.get(target, 999)
+                    on_target_hill = True
+
+        # === REINFORCE MODE ===
+        # Reinforce with layers when contested OR when opponent is approaching
+        reinforce = contested or approaching
 
         # === STAMINA BUDGET: reserve more when far from hill ===
         if td > 5:
@@ -154,8 +164,12 @@ class PlayerController:
         if large_map and td > 8:
             buf = 35
 
+        # On a contested hill, lower buffer — every paint counts
+        if on_target_hill and contested:
+            buf = 10
+
         # === PRE-MOVE PAINTING ===
-        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, contested)
+        actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, reinforce)
 
         # Trail painting: on large maps, always paint 1 new cell per stop for regen.
         # On small maps, only when stamina is healthy.
@@ -165,15 +179,19 @@ class PlayerController:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
 
         # === MOVEMENT ===
-        # When target is a hill cell, be aggressive — don't avoid opponent territory
         targeting_hill = board.cells[target.r][target.c].hill_id != 0 if not board.oob(target) else False
-        d1 = self._step_toward(board, pos, target, pp, opp.loc, hill_target=targeting_hill)
+
+        # On a contested hill, use collision-safe step (avoid opponent cells near opp)
+        if on_target_hill and contested:
+            d1 = self._safe_hill_step(board, pos, target, pp, opp.loc)
+        else:
+            d1 = self._step_toward(board, pos, target, pp, opp.loc, hill_target=targeting_hill)
         if d1:
             actions.append(Action.Move(d1))
             p1 = pos + d1
 
             # Paint hill cells at new position
-            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, contested)
+            actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce)
 
             # Trail at new position (large maps)
             if large_map and td > 3:
@@ -181,29 +199,35 @@ class PlayerController:
 
             # 2nd move — skip danger check when contesting a hill
             if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
-                d2 = self._step_toward(board, p1, target, pp, opp.loc, hill_target=targeting_hill)
+                if on_target_hill and contested:
+                    d2 = self._safe_hill_step(board, p1, target, pp, opp.loc)
+                else:
+                    d2 = self._step_toward(board, p1, target, pp, opp.loc, hill_target=targeting_hill)
                 if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     actions.append(Action.Move(d2))
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
-                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), contested)
+                    actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 10), reinforce)
 
                     if large_map and td > 5:
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
 
                     # 3rd move
                     if td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
-                        d3 = self._step_toward(board, p2, target, pp, opp.loc, hill_target=targeting_hill)
+                        if on_target_hill and contested:
+                            d3 = self._safe_hill_step(board, p2, target, pp, opp.loc)
+                        else:
+                            d3 = self._step_toward(board, p2, target, pp, opp.loc, hill_target=targeting_hill)
                         if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
-                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 15, contested)
+                            actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce)
 
         # === POST-MOVE: paint remaining hill cells ===
         final = self._simpos(board, pos, actions)
-        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 15, contested)
+        actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 10, reinforce)
 
         # Paint trail at final position if on a hill or on large map
         if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
@@ -216,6 +240,11 @@ class PlayerController:
             fb = self._fallback_move(board, pp, me, opp)
             if fb:
                 actions.append(fb)
+
+        # === COLLISION SAFETY ===
+        # Never end turn on a neutral cell within opponent's striking range.
+        # Opponent can multi-move (up to 3-4 steps) and kill us on neutral cells.
+        actions, stamina = self._ensure_safe_ending(board, pp, pos, opp, actions, stamina, painted)
 
         return actions if actions else []
 
@@ -609,8 +638,8 @@ class PlayerController:
                 score += 25  # grow outward from existing territory
             if c.hill_id != 0:
                 score += 40
-            if c.powerup:
-                score += 60
+            if c.powerup and d <= 2:
+                score += 20  # mild bonus, don't chase far
 
             if score > best_score:
                 best_score = score
@@ -680,6 +709,77 @@ class PlayerController:
     # ===============================================================
     # SAFETY
     # ===============================================================
+
+    def _ensure_safe_ending(self, board, pp, start_pos, opp, actions, stamina, painted):
+        """Prevent ending turn on a neutral cell within opponent's striking range.
+        Opponent can multi-move up to 3 steps to collide on neutral = we die."""
+        final = self._simpos(board, start_pos, actions)
+        fc = board.cells[final.r][final.c]
+        opp_dist_to_final = self._md(final, opp.loc)
+
+        # Safe if: we own the cell, or opponent can't reach us next turn
+        # Opponent can move up to 3 steps (1 free + 2 extra = 30 stamina)
+        opp_reach = min(3, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
+        if fc.owner_parity == pp or opp_dist_to_final > opp_reach:
+            return actions, stamina
+
+        # DANGER: we're on neutral or opponent cell within opponent's reach.
+        # Strategy 1: pre-paint the final cell before the last move.
+        # Find the position right before the last Move action.
+        if fc.owner_parity == 0 and fc.beacon_parity == 0 and not fc.is_wall:
+            last_move_idx = None
+            for i in range(len(actions) - 1, -1, -1):
+                if isinstance(actions[i], Action.Move):
+                    last_move_idx = i
+                    break
+
+            if last_move_idx is not None and stamina >= GameConstants.PAINT_STAMINA_COST:
+                # Position before the last move
+                pre_pos = self._simpos(board, start_pos, actions[:last_move_idx])
+                # Check if pre_pos is adjacent to final (it should be — last move is 1 step)
+                if self._md(pre_pos, final) == 1:
+                    # Insert paint of final cell before the last move
+                    actions.insert(last_move_idx, Action.Paint(final))
+                    stamina -= GameConstants.PAINT_STAMINA_COST
+                    painted[final] = painted.get(final, 0) + 1
+                    return actions, stamina
+
+        # Strategy 2: swap last move to end on a friendly cell instead.
+        last_move_idx = None
+        for i in range(len(actions) - 1, -1, -1):
+            if isinstance(actions[i], Action.Move):
+                last_move_idx = i
+                break
+
+        if last_move_idx is not None:
+            pre_pos = self._simpos(board, start_pos, actions[:last_move_idx])
+            best_dir = None
+            best_score = -999
+            for d in Direction.cardinals():
+                nxt = pre_pos + d
+                if board.oob(nxt):
+                    continue
+                c = board.cells[nxt.r][nxt.c]
+                if c.is_wall or (nxt == opp.loc and c.owner_parity != pp):
+                    continue
+                score = 0
+                nd = self._md(nxt, opp.loc)
+                if c.owner_parity == pp:
+                    score += 50  # safe — we win collisions here
+                elif c.owner_parity == 0 and nd > opp_reach:
+                    score += 30  # neutral but out of reach
+                elif c.owner_parity == -pp:
+                    score -= 100  # opponent cell = death
+                else:
+                    score -= 20  # neutral in reach = dangerous
+                score += nd * 2  # farther from opp = safer
+                if score > best_score:
+                    best_score = score
+                    best_dir = d
+            if best_dir and best_score > 0:
+                actions[last_move_idx] = Action.Move(best_dir)
+
+        return actions, stamina
 
     def _is_dangerous(self, board, loc, opp_loc, pp):
         if board.oob(loc):
@@ -841,6 +941,68 @@ class PlayerController:
             if d < best_d:
                 best_d = d
                 best = hloc
+        return best
+
+    def _nearest_unclaimed_hill_cell(self, board, pp, hill, my_dist, contested):
+        """Find next hill cell to claim/reclaim. Prioritizes:
+        - Neutral cells (easy to paint)
+        - Opponent cells we can step on to weaken
+        - Prefers cells we can reach without collision risk when contested."""
+        best = None
+        best_score = -9999
+        opp = board.get_opponent(pp)
+        for hloc in hill.cells:
+            hc = board.cells[hloc.r][hloc.c]
+            if hc.owner_parity == pp:
+                continue
+            d = my_dist.get(hloc, 999)
+            if d > 50:
+                continue
+            # Prefer neutral cells (paintable) over opponent cells (need stepping)
+            if hc.owner_parity == 0:
+                score = 100 - d * 3
+            else:
+                # Opponent cell — need to step on it to weaken
+                layers = abs(hc.paint_value)
+                score = 60 - d * 3 - layers * 5
+            # When contested, avoid cells right next to opponent (collision risk)
+            if contested and self._md(hloc, opp.loc) <= 1:
+                score -= 50
+            if score > best_score:
+                best_score = score
+                best = hloc
+        return best
+
+    def _safe_hill_step(self, board, start, target, pp, opp_loc):
+        """Step toward target on a contested hill, avoiding collision death.
+        Don't step onto opponent-painted cells adjacent to opponent."""
+        if start == target:
+            return None
+        best = None
+        best_score = -9999
+        for d in Direction.cardinals():
+            nxt = start + d
+            if board.oob(nxt):
+                continue
+            c = board.cells[nxt.r][nxt.c]
+            if c.is_wall:
+                continue
+            # Never walk onto opponent cell adjacent to opponent (collision = death)
+            if c.owner_parity == -pp and self._md(nxt, opp_loc) <= 1:
+                continue
+            # Score: prefer moves toward target, on friendly/neutral cells
+            score = -self._md(nxt, target) * 10
+            if c.owner_parity == pp:
+                score += 15  # safe cell
+            elif c.owner_parity == 0:
+                score += 5
+            else:
+                score -= 5  # opponent cell but safe distance
+            if nxt == target:
+                score += 50
+            if score > best_score:
+                best_score = score
+                best = d
         return best
 
     def _near_hill(self, board, pos, pp, radius=4):
