@@ -114,16 +114,12 @@ class PlayerController:
         area = board.board_size.r * board.board_size.c
         large_map = area >= 400  # ~20x20+
 
-        # === IS THE TARGET HILL CONTESTED? ===
-        # contested = opponent close enough to threaten the hill
-        # approaching = opponent heading toward hill but not yet on it
-        # racing = both us and opponent heading for the same uncaptured hill
-        contested = False
-        approaching = False
-        racing = False
-        opp_hill_dist = 999
+        # === OPPONENT ANALYSIS ===
+        dist_to_opp = self._md(pos, opp.loc)
         target_cell = board.cells[target.r][target.c] if not board.oob(target) else None
         target_hill_obj = None
+        opp_hill_dist = 999
+
         if target_cell and target_cell.hill_id != 0:
             target_hid = target_cell.hill_id
             target_hill_obj = board.hills.get(target_hid)
@@ -132,16 +128,15 @@ class PlayerController:
                     (self._md(hloc, opp.loc) for hloc in target_hill_obj.cells),
                     default=999
                 )
-                if opp_hill_dist <= 4:
-                    contested = True
-                elif opp_hill_dist <= 10:
-                    approaching = True
-                # Racing: both heading for same hill, opponent is close enough to compete
-                if opp_hill_dist <= td + 4 and target_hill_obj.controller_parity != pp:
-                    racing = True
 
-        # === OPPONENT PROXIMITY — collision-aware mode ===
-        opp_nearby = self._md(pos, opp.loc) <= 4
+        # contested: opponent is ON or right next to the target hill
+        contested = opp_hill_dist <= 4
+        # approaching: opponent is heading toward the hill
+        approaching = 4 < opp_hill_dist <= 10
+        # danger_zone: WE are close to the opponent — need collision safety
+        danger_zone = dist_to_opp <= 3
+        # reinforce: add layers when opponent threatens the hill
+        reinforce = contested or approaching
 
         # === WHEN ON/NEAR A HILL: retarget to walk across it ===
         cur_hill_id = board.cells[pos.r][pos.c].hill_id
@@ -155,45 +150,42 @@ class PlayerController:
                     td = my_dist.get(target, 999)
                     on_target_hill = True
 
-        # === REINFORCE MODE ===
-        reinforce = contested or approaching
-
         # === STAMINA BUDGET ===
-        if racing:
-            # Racing: minimal buffer — every stamina point goes to movement
-            buf = 15
-        elif td > 5:
+        if td > 5:
             buf = 55
         elif td > 2:
             buf = 30
         else:
             buf = 15
 
-        if large_map and td > 8 and not racing:
+        if large_map and td > 8:
             buf = 35
 
         if on_target_hill and contested:
             buf = 10
 
         # === PRE-MOVE PAINTING ===
-        # When racing, skip non-hill painting to save stamina for multi-moves
         actions, stamina = self._paint_hill_cells(board, pp, pos, actions, stamina, painted, buf, reinforce)
 
-        if not racing:
-            if large_map and td > 2:
-                actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
-            elif stamina > 70 and td > 2:
-                actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
+        # Trail painting — but when in danger zone, always paint for collision safety
+        if danger_zone:
+            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
+        elif large_map and td > 2:
+            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
+        elif stamina > 70 and td > 2:
+            actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
 
         # === MOVEMENT ===
         targeting_hill = board.cells[target.r][target.c].hill_id != 0 if not board.oob(target) else False
 
-        # Choose step function based on context
+        # Choose step function:
+        # - On contested hill: collision-safe hill walking
+        # - In danger zone (close to opp): prefer our own paint
+        # - Otherwise: normal pathfinding
         def _pick_step(from_pos):
             if on_target_hill and contested:
                 return self._safe_hill_step(board, from_pos, target, pp, opp.loc)
-            elif opp_nearby:
-                # When opponent is close, prefer stepping on our own paint
+            elif danger_zone:
                 return self._collision_aware_step(board, from_pos, target, pp, opp.loc)
             else:
                 return self._step_toward(board, from_pos, target, pp, opp.loc, hill_target=targeting_hill)
@@ -205,49 +197,42 @@ class PlayerController:
 
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce)
 
-            if not racing and large_map and td > 3:
+            # In danger zone, paint trail at every stop for collision safety
+            if danger_zone:
+                actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
+            elif large_map and td > 3:
                 actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
 
-            # 2nd move — more aggressive threshold when racing
-            move2_cost = GameConstants.EXTRA_MOVE_COST + buf + (0 if racing else 5)
-            if td > 2 and stamina >= move2_cost:
+            # 2nd move
+            if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
                 d2 = _pick_step(p1)
-                if d2 and (targeting_hill or racing or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
+                if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     actions.append(Action.Move(d2))
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
                     actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, max(buf - 10, 10), reinforce)
 
-                    if not racing and large_map and td > 5:
+                    if danger_zone or (large_map and td > 5):
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target)
 
-                    # 3rd move — always attempt when racing
-                    move3_cost = GameConstants.EXTRA_MOVE_COST * 2 + (10 if racing else max(buf - 15, 15))
-                    if (td > 5 or racing) and stamina >= move3_cost:
+                    # 3rd move
+                    if td > 5 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 15, 15):
                         d3 = _pick_step(p2)
-                        if d3 and (targeting_hill or racing or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
+                        if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
                             actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce)
 
-                            # 4th move — only when racing and can afford it
-                            if racing and td > 6 and stamina >= GameConstants.EXTRA_MOVE_COST * 3 + 10:
-                                d4 = _pick_step(p3)
-                                if d4:
-                                    actions.append(Action.Move(d4))
-                                    stamina -= GameConstants.EXTRA_MOVE_COST * 3
-
         # === POST-MOVE: paint remaining hill cells ===
         final = self._simpos(board, pos, actions)
         actions, stamina = self._paint_hill_cells(board, pp, final, actions, stamina, painted, 10, reinforce)
 
-        if not racing:
-            if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
-                actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
-            elif large_map and stamina > 30:
-                actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
+        if board.cells[final.r][final.c].hill_id != 0 and stamina > 40:
+            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
+        elif danger_zone or (large_map and stamina > 30):
+            actions, stamina = self._paint_trail(board, pp, final, actions, stamina, painted, 20, target)
 
         # === GUARANTEE MOVE ===
         if not any(isinstance(a, Action.Move) for a in actions):
@@ -338,12 +323,19 @@ class PlayerController:
             commit_bonus = 60 if (hid == committed) else 0
 
             # Proximity bonus: strongly favor hills we're right next to.
-            # A hill 1 step away gets +80, 2 steps +60, 3 steps +40, etc.
             proximity_bonus = max(0, 100 - hill_dist * 20)
+
+            # Opponent camping penalty: if opponent is sitting on this hill,
+            # deprioritize it — go capture neutral hills first for domination.
+            # Only contest camped hills when no better options exist.
+            opp_on_hill = any(
+                self._md(hloc, opp.loc) == 0 for hloc in hill.cells
+            )
+            camping_penalty = -80 if opp_on_hill else 0
 
             score = (race_adv * 8 + size_bonus + close_to_dom + steal_bonus
                      + late_bonus + commit_bonus + proximity_bonus
-                     - to_paint * 5)
+                     + camping_penalty - to_paint * 5)
 
             if score > best_score:
                 best_score = score
