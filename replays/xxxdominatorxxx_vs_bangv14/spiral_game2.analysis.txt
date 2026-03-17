@@ -1,0 +1,135 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: spiral (17x17)
+Walls: 90/289 (31.1%)
+Passable cells: 199
+Hills: 4 (IDs: [1, 4, 3, 2])
+  Hill 1: 5 cells, center ~(2, 1)
+  Hill 4: 6 cells, center ~(8, 8)
+  Hill 3: 5 cells, center ~(8, 8)
+  Hill 2: 5 cells, center ~(13, 14)
+Result: PLAYER_2 by COLLISION after 1004 turns
+Bids: P1=5, P2=6
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: P2
+P1 opening path (first 10): [(16, 0), (16, 0), (15, 0), (15, 0), (14, 0), (14, 0), (13, 0), (13, 0), (12, 0), (12, 0)]
+P2 opening path (first 10): [(0, 16), (3, 16), (3, 16), (3, 15), (3, 15), (3, 14), (3, 14), (1, 14), (1, 14), (0, 13)]
+Territory at turn 30: P1=12, P2=4
+P1 first hill capture: hill 4 at turn 32
+P2 first hill capture: hill 1 at turn 29
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 37
+P2 max territory: 12
+P1 final territory: 37
+P2 final territory: 12
+  At 25% game: P1=34, P2=10
+  At 50% game: P1=37, P2=10
+  At 75% game: P1=37, P2=10
+Early growth rate (first 50 turns): P1=0.32/turn, P2=0.14/turn
+Paint efficiency: P1=0.48 cells/paint, P2=0.39 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 503
+Total moves: 504, Total paints: 77
+Avg moves/turn: 1.00, Avg paints/turn: 0.15
+Max moves in a turn: 2
+Move count distribution: {1: 502, 2: 1}
+Erases: 0, Beacon travels: 0, Beacon places: 1
+
+--- P2 Actions ---
+Turns played: 502
+Total moves: 974, Total paints: 31
+Avg moves/turn: 1.94, Avg paints/turn: 0.06
+Max moves in a turn: 3
+Move count distribution: {1: 33, 2: 466, 3: 3}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 129.0
+Min stamina: 15
+Max stamina reached: 140
+Turns below 20 stamina: 12
+Turns below 10 stamina: 0
+
+--- P2 Stamina ---
+Avg stamina: 155.0
+Min stamina: 0
+Max stamina reached: 180
+Turns below 20 stamina: 13
+Turns below 10 stamina: 3
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (5 cells):
+  Turn 29: → P2
+
+Hill 3 (5 cells):
+  Turn 71: → P2
+
+Hill 4 (6 cells):
+  Turn 32: → P1
+
+============================================================
+  COLLISIONS
+============================================================
+Total collisions: 1
+  Turn 1005: at (8, 8), P1 died (acting: P1)
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 93.0%
+Top 5 cells: [((7, 9), 462), ((7, 8), 458), ((7, 10), 10), ((12, 3), 6), ((13, 0), 4)]
+
+--- P2 Movement ---
+% time on hills: 96.1%
+Top 5 cells: [((9, 8), 930), ((8, 8), 9), ((1, 2), 8), ((2, 2), 8), ((3, 1), 4)]
+
+Proximity: 930 turns within 3 Manhattan distance (92.4%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 29: Hill 1 → P2
+  Turn 32: Hill 4 → P1
+  Turn 71: Hill 3 → P2
+  Turn 1005: COLLISION at (8, 8) — P1 died
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-50: Tied leading
+    P1 territory: 0 → 17
+    P2 territory: 0 → 7
+  Turns 50-1005: P1 leading
+    P1 territory: 17 → 37
+    P2 territory: 7 → 12
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P2 by COLLISION
+Game length: 1004 turns (502 rounds)
+
+KEY OBSERVATIONS:
+• Collision deaths: P1=1, P2=0
+• Hill captures: P1=1, P2=2
+• Territory dominance: P2 peaked at 12 cells
