@@ -1,13 +1,13 @@
 # Installation
 
-**NOTE BEFORE BEGINNING:** The python terminal call used to run python files can vary between `py`, `python`, `python3`, and `python3.14` depending on OS and how your python installation is setup. When in doubt, try all of them.
+**NOTE BEFORE BEGINNING:** The python terminal call used to run python files can vary between `py`, `python`, `python3`, and `python3.12` depending on OS and how your python installation is setup. When in doubt, try all of them.
 
 ## 1. Installing Python and a Virtual Environment manager
 
-If you don't have python installed, download the [Python install manager](https://www.python.org/downloads/) and install **Python 3.14** (other versions will probably also work, but 3.14 is what we use on servers). Setting up this year's game will use a virtual environment manager: **venv** comes standard with python, but you may feel free to install and use other managers such as [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) or [conda](https://www.anaconda.com/download/success) if you want.
+If you don't have python installed, download the [Python install manager](https://www.python.org/downloads/) and install **Python 3.12** (other versions will probably also work, but 3.12 is what we use on servers). Setting up this year's game will use a virtual environment manager: **venv** comes standard with python, but you may feel free to install and use other managers such as [virtualenv](https://virtualenv.pypa.io/en/latest/installation.html) or [conda](https://www.anaconda.com/download/success) if you want.
 
 ## 2. Creating the Environment
-Download the [scaffold]() and extract it. Open a terminal in the folder you extracted t. Then, create a virtual environment for Python 3.14 using the requirement.txt file from the scaffold.
+Download the [scaffold player_files.zip](https://drive.google.com/drive/folders/1TzzlKlM2wT8nvdzCBMrqZJGEs-V1wzsh) and extract it. Open a terminal in the folder you extracted it to. Then, create a virtual environment for Python 3.12 using the requirement.txt file from the scaffold.
 
 If you are unsure of how to do so, read and follow the **Create and Use Virtual Environments**, **Prepare pip**, and **Using a requirements file** sections from this guide: [Creating a virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#using-a-requirements-file)
 
@@ -15,9 +15,13 @@ If you are unsure of how to do so, read and follow the **Create and Use Virtual 
 Once you have created a virtual environment with the correct packages, you have two options, either to run the game - via our GUI client or via terminal.
 
 ### GUI Client
-Download the relevant GUI client for your OS from this [link]() on our website. 
+Download the relevant GUI client for your OS from the drive link on our website. 
 
 After opening the client, go to the **settings** tab, click "set python executable location" and copy in the location of the python executable for your virtual environment. Some common places are listed below (where `<creation-directory>` in the directory where you created the environment and `<venv>` is the name of your virtual environment):
+
+Note for apple to open the client, you will need to bypass security. Type this in your terminal.
+
+xattr -dr com.apple.quarantine "Bytefight Client 2026.app"
 
 **Windows venv**
 ```

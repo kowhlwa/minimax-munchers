@@ -35,3 +35,11 @@ player subdirectory contains an \__init__.py, controller.py, and player_board.py
 1. Ensure virtual environment is activated
 2. Follow player_files/docs/instructions/installation.md
 unfinished
+
+### BOT NOTES:
+Legacy bots are bangv10 - bangv15, example-bot, mymymymy, googleplz, googleplz-timchan, player_showcase, and lvl100mafiaboss.
+
+Do not use thedominator7 - 11, do not use hiremegoogle.
+Timchan was recently replaced by xxxdominatorxxx.
+
+Current flagship: xxxdominatorxxx.
