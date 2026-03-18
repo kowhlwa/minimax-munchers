@@ -155,6 +155,14 @@ class PlayerController:
             # No hill target — fall back to territory mode
             return self._play_territory(board, pp, me, opp, my_dist, stamina, in_sudden_death)
 
+        # TIEBREAK AWARENESS: tiebreak resolves hills-first, then territory.
+        # If we're heading toward tiebreak and have fewer hills, prioritize hill capture.
+        approaching_tiebreak = round_num >= 350
+        if approaching_tiebreak and our_hills <= their_hills and attack:
+            target = attack
+            chosen_hid = attack_hid
+            td = my_dist.get(target, 999)
+
         # In sudden death with hill lead — maximize territory for regen instead of risky attacks
         if in_sudden_death and our_hills > their_hills and not (their_hills + 1 >= dom_needed):
             return self._play_territory(board, pp, me, opp, my_dist, stamina, in_sudden_death)
@@ -280,8 +288,13 @@ class PlayerController:
             buf = min(buf, 5)
 
         # === SHOULD WE PAINT TERRITORY EN ROUTE? ===
-        # ALWAYS paint en route — top players paint 1.9 cells/turn, we need to match
-        paint_territory_en_route = True
+        # Data shows: in WINS P1 moves more (1.46 mpt), in LOSSES P1 paints more (1.31 ppt).
+        # When racing for uncaptured hills, prioritize MOVEMENT over painting.
+        # When all hills claimed or defending, paint territory for regen.
+        if neutral_hills_exist and td > 2:
+            paint_territory_en_route = False  # RUSH hills, don't paint trail
+        else:
+            paint_territory_en_route = all_hills_claimed or danger_zone
 
         # Double-layer trail when near opponent — single layer gets erased in one step
         trail_layers = 2 if danger_zone else 1
@@ -320,8 +333,18 @@ class PlayerController:
                 return Action.Move(direction, move_type=MoveType.ERASE)
             return Action.Move(direction)
 
+        def _safe_to_move(from_pos, direction):
+            """NEVER move onto opponent's cell unless we own it. #1 cause of losses."""
+            dest = from_pos + direction
+            if board.oob(dest):
+                return False
+            if dest == opp.loc:
+                c = board.cells[dest.r][dest.c]
+                return c.owner_parity == pp  # only collide on OUR cell
+            return True
+
         d1 = _pick_step(pos)
-        if d1:
+        if d1 and _safe_to_move(pos, d1):
             # Pre-paint destination if neutral and opponent within reach
             nxt_pos = pos + d1
             if not board.oob(nxt_pos):
@@ -346,7 +369,7 @@ class PlayerController:
             move2_threshold = GameConstants.EXTRA_MOVE_COST + buf + (10 if maze_map else 0) + int(15 * wall_ratio)
             if td > 1 and stamina >= move2_threshold:
                 d2 = _pick_step(p1)
-                if d2 and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
+                if d2 and _safe_to_move(p1, d2) and (targeting_hill or not self._is_dangerous(board, p1 + d2, opp.loc, pp)):
                     # Pre-paint destination if neutral and opponent within reach
                     nxt_pos = p1 + d2
                     if not board.oob(nxt_pos):
@@ -374,7 +397,7 @@ class PlayerController:
                         move3_threshold = GameConstants.EXTRA_MOVE_COST * 2 + 5
                     if not maze_map and td > 2 and stamina >= move3_threshold:
                         d3 = _pick_step(p2)
-                        if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
+                        if d3 and _safe_to_move(p2, d3) and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             # Pre-paint destination if neutral and opponent within reach
                             nxt_pos = p2 + d3
                             if not board.oob(nxt_pos):
