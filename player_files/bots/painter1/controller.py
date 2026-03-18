@@ -18,6 +18,8 @@ class PlayerController:
         self._map_info = None  # cached map classification
         self._recent_positions = []  # track last N positions for stalemate detection
         self._stalemate_counter = 0  # how many turns we've been stuck
+        self._opp_last_loc = None  # track opponent movement
+        self._opp_idle_turns = 0  # how many turns opponent hasn't moved
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
         # First-move advantage is worth ~6 stamina for hill rushing
@@ -69,6 +71,23 @@ class PlayerController:
         our_hills = len(me.controlled_hills)
         their_hills = len(opp.controlled_hills)
 
+        # === PASSIVE OPPONENT DETECTION ===
+        if self._opp_last_loc and opp.loc == self._opp_last_loc:
+            self._opp_idle_turns += 1
+        else:
+            self._opp_idle_turns = 0
+        self._opp_last_loc = opp.loc
+
+        # If opponent hasn't moved for 5+ turns, they're passive/AFK.
+        # Aggressively expand territory and capture unclaimed hills.
+        opp_is_passive = self._opp_idle_turns >= 5
+        if opp_is_passive:
+            # Prioritize unclaimed hills, then territory flood
+            unclaimed = self._find_unclaimed_far_hill(board, pp, my_dist, opp_dist, opp.loc)
+            if unclaimed:
+                return self._rush_to(board, pp, me, opp, my_dist, stamina, unclaimed)
+            return self._play_territory(board, pp, me, opp, my_dist, stamina)
+
         # === STALEMATE DETECTION ===
         self._recent_positions.append((pos.r, pos.c))
         if len(self._recent_positions) > 12:
@@ -87,6 +106,14 @@ class PlayerController:
             flank = self._find_flank_target(board, pp, me, opp, my_dist, opp_dist)
             if flank:
                 return self._rush_to(board, pp, me, opp, my_dist, stamina, flank)
+
+        # === PROXIMITY DEADLOCK: break away to capture unclaimed hills ===
+        # If we're stuck near opponent and there are unclaimed hills elsewhere, go get them.
+        # This fixes the Therules scenario: 4/7 hills uncaptured while bots stare at each other.
+        if in_stalemate and self._stalemate_counter >= 3:
+            unclaimed_far = self._find_unclaimed_far_hill(board, pp, my_dist, opp_dist, opp.loc)
+            if unclaimed_far:
+                return self._rush_to(board, pp, me, opp, my_dist, stamina, unclaimed_far)
 
         # === NO HILLS: pure territory game ===
         if total_hills == 0:
@@ -199,6 +226,24 @@ class PlayerController:
                     target = unpainted
                     td = my_dist.get(target, 999)
                     on_target_hill = True
+
+        # === HILL TRAVERSAL: when on a hill, use planned traversal ===
+        if on_target_hill and cur_hill_id != 0:
+            hill_obj = board.hills.get(cur_hill_id)
+            if hill_obj and hill_obj.controller_parity != pp:
+                traversal, t_painted = self._plan_hill_traversal(
+                    board, pp, pos, hill_obj, stamina, opp, contested, max_layers)
+                if traversal and any(isinstance(a, Action.Move) for a in traversal):
+                    actions = traversal
+                    painted.update(t_painted)
+                    # Run collision safety on the planned actions
+                    actions, stamina = self._ensure_safe_ending(
+                        board, pp, pos, opp, actions, stamina, painted)
+                    if not any(isinstance(a, Action.Move) for a in actions):
+                        fb = self._fallback_move(board, pp, me, opp)
+                        if fb:
+                            actions.append(fb)
+                    return actions if actions else [Action.Move(Direction.UP)]
 
         # === CHOKEPOINT: if path to hill has a bottleneck, secure it ===
         # When opponent is also near the chokepoint, controlling it is critical
@@ -571,6 +616,37 @@ class PlayerController:
             return waypoint
         return best
 
+    def _find_unclaimed_far_hill(self, board, pp, my_dist, opp_dist, opp_loc):
+        """Find an unclaimed hill that's far from the opponent — for breaking deadlocks.
+        Prefers hills we can reach before the opponent."""
+        best = None
+        best_score = -9999
+        for hid, hill in board.hills.items():
+            if hill.controller_parity != 0:
+                continue  # only unclaimed hills
+            # Find nearest reachable cell on this hill
+            nearest_d = 999
+            nearest_loc = None
+            for hloc in hill.cells:
+                hc = board.cells[hloc.r][hloc.c]
+                if hc.owner_parity == pp:
+                    continue  # already ours
+                d = my_dist.get(hloc, 999)
+                if d < nearest_d:
+                    nearest_d = d
+                    nearest_loc = hloc
+            if nearest_loc is None:
+                continue
+            # Opponent distance to this hill
+            opp_nearest = min((opp_dist.get(h, 999) for h in hill.cells), default=999)
+            # Score: prefer hills far from opponent that we can reach first
+            race_adv = opp_nearest - nearest_d
+            score = race_adv * 5 + self._md(nearest_loc, opp_loc) * 2 - nearest_d
+            if score > best_score:
+                best_score = score
+                best = nearest_loc
+        return best
+
     def _powerup_nearby(self, board, my_dist, max_range):
         """Find closest powerup within range."""
         best = None
@@ -582,6 +658,167 @@ class PlayerController:
                 best_d = d
                 best = loc
         return best
+
+    # ===============================================================
+    # HILL TRAVERSAL PLANNER
+    # ===============================================================
+
+    def _direction_between(self, a, b):
+        """Return Direction from adjacent cell a to cell b."""
+        dr = b.r - a.r
+        dc = b.c - a.c
+        if dr == -1 and dc == 0:
+            return Direction.UP
+        if dr == 1 and dc == 0:
+            return Direction.DOWN
+        if dr == 0 and dc == -1:
+            return Direction.LEFT
+        if dr == 0 and dc == 1:
+            return Direction.RIGHT
+        return None
+
+    def _compute_hill_path(self, board, pos, needs_work, pp, opp_loc, contested):
+        """Greedy nearest-neighbor traversal of unclaimed hill cells.
+        Returns ordered list of cells to visit."""
+        path = []
+        remaining = list(needs_work)
+        current = pos
+
+        while remaining:
+            best = None
+            best_cost = 999
+            best_idx = -1
+            for i, cell in enumerate(remaining):
+                d = self._md(current, cell)
+                # Collision penalty: avoid opponent cells near opponent
+                if contested:
+                    c = board.cells[cell.r][cell.c]
+                    if c.owner_parity == -pp and self._md(cell, opp_loc) <= 1:
+                        d += 10
+                if d < best_cost:
+                    best_cost = d
+                    best = cell
+                    best_idx = i
+            if best is None:
+                break
+            path.append(best)
+            remaining.pop(best_idx)
+            current = best
+
+        return path
+
+    def _plan_hill_traversal(self, board, pp, pos, hill, stamina, opp, contested, max_layers):
+        """Plan an efficient traversal across a hill, interleaving moves and paints.
+        Returns (actions, painted_dict) — actions may be empty if nothing to do."""
+        PAINT_COST = GameConstants.PAINT_STAMINA_COST
+        ERASE_COST = GameConstants.ERASE_STEP_EXTRA_COST
+        opp_loc = opp.loc
+
+        # Classify hill cells
+        needs_work = []
+        for hloc in hill.cells:
+            hc = board.cells[hloc.r][hloc.c]
+            if hc.owner_parity != pp:
+                needs_work.append(hloc)
+
+        if not needs_work:
+            return [], {}
+
+        # Compute traversal order
+        visit_order = self._compute_hill_path(board, pos, needs_work, pp, opp_loc, contested)
+        if not visit_order:
+            return [], {}
+
+        actions = []
+        painted = {}
+        current_pos = pos
+        moves_taken = 0
+        regen = self._estimate_regen(board, pos, pp)
+        buf = max(5, 10 - regen // 2)
+
+        # Pre-move: paint adjacent hill cells from starting position
+        actions, stamina = self._paint_hill_cells(
+            board, pp, current_pos, actions, stamina, painted,
+            buf, contested, max_layers)
+
+        for target_cell in visit_order:
+            if moves_taken >= 4:
+                break
+
+            # Move cost for this step
+            move_cost = GameConstants.EXTRA_MOVE_COST * moves_taken if moves_taken > 0 else 0
+
+            tc = board.cells[target_cell.r][target_cell.c]
+            dist = self._md(current_pos, target_cell)
+
+            if dist == 0:
+                # Already on this cell — just paint around it
+                actions, stamina = self._paint_hill_cells(
+                    board, pp, current_pos, actions, stamina, painted,
+                    buf, contested, max_layers)
+                continue
+
+            # Determine the step direction (may need intermediate steps for dist > 1)
+            if dist == 1:
+                step_dir = self._direction_between(current_pos, target_cell)
+            else:
+                step_dir = self._safe_hill_step(board, current_pos, target_cell, pp, opp_loc)
+
+            if step_dir is None:
+                continue
+
+            next_pos = current_pos + step_dir
+            if board.oob(next_pos) or board.cells[next_pos.r][next_pos.c].is_wall:
+                continue
+
+            nc = board.cells[next_pos.r][next_pos.c]
+
+            # Collision safety: skip if stepping onto opponent cell near opponent
+            if next_pos == opp_loc and nc.owner_parity != pp:
+                continue
+            if nc.owner_parity == -pp and self._md(next_pos, opp_loc) <= 1:
+                continue
+            # Never step onto opponent beacon
+            if nc.beacon_parity == -pp:
+                continue
+
+            # Decide erase vs regular
+            use_erase = False
+            if nc.owner_parity == -pp and next_pos != opp_loc:
+                layers = abs(nc.paint_value)
+                erase_budget = stamina - move_cost - ERASE_COST
+                if layers >= 3 and erase_budget >= buf:
+                    use_erase = True
+                elif layers >= 2 and contested and erase_budget >= buf + 15:
+                    use_erase = True
+
+            total_cost = move_cost + (ERASE_COST if use_erase else 0)
+            if stamina - total_cost < buf:
+                break
+
+            # Pre-paint: if destination is neutral, paint it before stepping
+            # (makes it ours for collision safety)
+            if nc.owner_parity == 0 and nc.beacon_parity == 0 and nc.hill_id != 0:
+                if stamina - total_cost - PAINT_COST >= buf:
+                    actions.append(Action.Paint(next_pos))
+                    stamina -= PAINT_COST
+                    painted[next_pos] = painted.get(next_pos, 0) + 1
+
+            # Execute move
+            if use_erase:
+                actions.append(Action.Move(step_dir, move_type=MoveType.ERASE))
+            else:
+                actions.append(Action.Move(step_dir))
+            stamina -= total_cost
+            moves_taken += 1
+            current_pos = next_pos
+
+            # Post-move: paint adjacent hill cells
+            actions, stamina = self._paint_hill_cells(
+                board, pp, current_pos, actions, stamina, painted,
+                buf, contested, max_layers)
+
+        return actions, painted
 
     # ===============================================================
     # PAINTING
