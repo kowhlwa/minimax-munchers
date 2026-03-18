@@ -54,6 +54,7 @@ class PlayerController:
         actions = []
         painted = {}
         self._turn_count += 1
+        _time_left = time_left() if callable(time_left) else time_left
 
         # Opponent reach based on stamina
         opp_kill_stam = opp.stamina - GameConstants.PAINT_STAMINA_COST
@@ -96,11 +97,11 @@ class PlayerController:
         mi = self._map_info
 
         # === PLAY MODE ===
-        mode = self._play_mode(board, pp, me, opp, mi, time_left)
+        mode = self._play_mode(board, pp, me, opp, mi, _time_left)
 
         # === DISTANCES (with caching + time budget) ===
         my_dist = self._bfs_cached(board, pos, pp)
-        if time_left > 20:
+        if _time_left > 20:
             opp_dist = self._bfs_raw_cached(board, opp.loc)
         else:
             opp_dist = {}  # skip opponent BFS when low on time
@@ -285,12 +286,12 @@ class PlayerController:
 
         d1 = _pick_step(pos)
         if d1:
-            # Pre-paint destination if neutral and opponent within reach
             nxt_pos = pos + d1
-            if not board.oob(nxt_pos):
-                nxt_c = board.cells[nxt_pos.r][nxt_pos.c]
+            nxt_c = board.cells[nxt_pos.r][nxt_pos.c] if not board.oob(nxt_pos) else None
+
+            # Pre-paint destination if neutral and opponent within reach
+            if nxt_c and not nxt_c.is_wall:
                 if (nxt_c.owner_parity == 0 and nxt_c.beacon_parity == 0
-                        and not nxt_c.is_wall
                         and self._md(nxt_pos, opp.loc) <= opp_reach
                         and stamina >= GameConstants.PAINT_STAMINA_COST + buf):
                     actions.append(Action.Paint(nxt_pos))
@@ -299,10 +300,10 @@ class PlayerController:
 
             # === ERASE STEP on hill cells (brief 4b) ===
             erase_used = False
-            if (nxt_c.hill_id != 0 and nxt_c.owner_parity == -pp
+            if (nxt_c and nxt_c.hill_id != 0 and nxt_c.owner_parity == -pp
                     and abs(nxt_c.paint_value) >= 3
                     and stamina >= GameConstants.ERASE_STEP_EXTRA_COST + buf
-                    and not (nxt_pos == opp.loc)):
+                    and nxt_pos != opp.loc):
                 actions.append(Action.Move(d1, move_type=MoveType.ERASE))
                 stamina -= GameConstants.ERASE_STEP_EXTRA_COST
                 erase_used = True
@@ -1697,7 +1698,8 @@ class PlayerController:
     def commentate(self, board, player_parity, time_left):
         p = board.get_player(player_parity)
         o = board.get_opponent(player_parity)
-        mode = self._play_mode(board, player_parity, p, o, self._map_info or {}, time_left)
+        _tl = time_left() if callable(time_left) else time_left
+        mode = self._play_mode(board, player_parity, p, o, self._map_info or {}, _tl)
         return (
             f"nk1[{mode}] h={len(p.controlled_hills)}v{len(o.controlled_hills)}"
             f" t={board.get_territory_count(player_parity)}v{board.get_territory_count(-player_parity)}"
