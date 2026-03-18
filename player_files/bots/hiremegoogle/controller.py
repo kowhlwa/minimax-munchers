@@ -16,23 +16,11 @@ class PlayerController:
         self.pp = player_parity
         self._committed_hill_id = None  # hill ID we're committed to capturing
         self._map_info = None  # cached map classification
+        self._pos_history = []  # last N positions for oscillation detection
+        self._oscillation_override = False  # when True, skip safety backtrack
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
-        if len(board.hills) == 0:
-            return 0
-        # Aggressive bid — first move is critical for hill rushing
-        me = board.get_player(player_parity)
-        min_hill_dist = 999
-        for hill in board.hills.values():
-            for hloc in hill.cells:
-                d = abs(me.loc.r - hloc.r) + abs(me.loc.c - hloc.c)
-                if d < min_hill_dist:
-                    min_hill_dist = d
-        if min_hill_dist <= 3:
-            return 15
-        elif min_hill_dist <= 6:
-            return 10
-        return 6
+        return 0
 
     def play(
         self, board: Board, player_parity: int, time_left,
@@ -44,7 +32,7 @@ class PlayerController:
         stamina = me.stamina
         actions = []
         painted = {}
-        opp_reach = min(4, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
+        opp_reach = min(3, 1 + opp.stamina // GameConstants.EXTRA_MOVE_COST)
         round_num = board.current_round
         approaching_sudden_death = round_num >= 400
         in_sudden_death = board.turn_count > GameConstants.GLOBAL_DECAY_TURN_THRESHOLD
@@ -55,6 +43,18 @@ class PlayerController:
         mi = self._map_info
         wall_ratio = mi['wall_ratio']
         maze_map = mi['maze']
+
+        # === ANTI-OSCILLATION: detect if we're stuck bouncing between same positions ===
+        self._pos_history.append(pos)
+        if len(self._pos_history) > 6:
+            self._pos_history = self._pos_history[-6:]
+        # Oscillating if last 4+ positions only visit 2-3 unique cells
+        if len(self._pos_history) >= 4:
+            recent = self._pos_history[-4:]
+            unique = set(recent)
+            self._oscillation_override = len(unique) <= 2
+        else:
+            self._oscillation_override = False
 
         # === KILL CHECK (always first) ===
         kill = self._try_kill(board, me, opp, pp, stamina)
@@ -71,27 +71,13 @@ class PlayerController:
         if not near_any_hill and cell.owner_parity == -pp and self._md(pos, opp.loc) <= escape_range:
             esc = self._escape_dir(board, pos, opp.loc, pp)
             if esc:
-                esc_dest = pos + esc
-                esc_actions = []
-                if not board.oob(esc_dest):
-                    ec = board.cells[esc_dest.r][esc_dest.c]
-                    if ec.owner_parity == 0 and ec.beacon_parity == 0 and not ec.is_wall and stamina >= GameConstants.PAINT_STAMINA_COST and self._md(esc_dest, opp.loc) <= opp_reach:
-                        esc_actions.append(Action.Paint(esc_dest))
-                esc_actions.append(Action.Move(esc))
-                return esc_actions
+                return [Action.Move(esc)]
 
         # === LOW STAMINA RETREAT — but NOT if near a hill ===
         if not near_any_hill and stamina < 35 and cell.owner_parity != pp:
             ret = self._retreat_dir(board, pos, opp.loc, pp)
             if ret:
-                ret_dest = pos + ret
-                ret_actions = []
-                if not board.oob(ret_dest):
-                    rc = board.cells[ret_dest.r][ret_dest.c]
-                    if rc.owner_parity == 0 and rc.beacon_parity == 0 and not rc.is_wall and stamina >= GameConstants.PAINT_STAMINA_COST and self._md(ret_dest, opp.loc) <= opp_reach:
-                        ret_actions.append(Action.Paint(ret_dest))
-                ret_actions.append(Action.Move(ret))
-                return ret_actions
+                return [Action.Move(ret)]
 
         # mi already set at top of play()
 
@@ -291,12 +277,6 @@ class PlayerController:
         elif stamina > 70 and td > 2:
             actions, stamina = self._paint_trail(board, pp, pos, actions, stamina, painted, buf, target)
 
-        # === HILL SWEEP: efficient recapture of contested hill ===
-        if on_target_hill and contested and target_hill_obj:
-            sweep = self._hill_sweep(board, pp, me, opp, my_dist, stamina, target_hill_obj)
-            if sweep:
-                return sweep
-
         # === MOVEMENT ===
         targeting_hill = board.cells[target.r][target.c].hill_id != 0 if not board.oob(target) else False
 
@@ -321,12 +301,7 @@ class PlayerController:
                     actions.append(Action.Paint(nxt_pos))
                     stamina -= GameConstants.PAINT_STAMINA_COST
                     painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-            # Use erase if target is heavily-painted opponent hill cell (and not colliding)
-            if nxt_pos != opp.loc and self._should_erase(board, pp, nxt_pos, stamina, buf):
-                actions.append(Action.Move(d1, move_type=MoveType.ERASE))
-                stamina -= 50
-            else:
-                actions.append(Action.Move(d1))
+            actions.append(Action.Move(d1))
             p1 = pos + d1
 
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce, max_layers)
@@ -351,12 +326,7 @@ class PlayerController:
                             actions.append(Action.Paint(nxt_pos))
                             stamina -= GameConstants.PAINT_STAMINA_COST
                             painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-                    # Use erase if target is heavily-painted opponent hill cell (and not colliding)
-                    if nxt_pos != opp.loc and self._should_erase(board, pp, nxt_pos, stamina, buf):
-                        actions.append(Action.Move(d2, move_type=MoveType.ERASE))
-                        stamina -= 50
-                    else:
-                        actions.append(Action.Move(d2))
+                    actions.append(Action.Move(d2))
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
@@ -381,12 +351,7 @@ class PlayerController:
                                     actions.append(Action.Paint(nxt_pos))
                                     stamina -= GameConstants.PAINT_STAMINA_COST
                                     painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-                            # Use erase if target is heavily-painted opponent hill cell (and not colliding)
-                            if nxt_pos != opp.loc and self._should_erase(board, pp, nxt_pos, stamina, buf):
-                                actions.append(Action.Move(d3, move_type=MoveType.ERASE))
-                                stamina -= 50
-                            else:
-                                actions.append(Action.Move(d3))
+                            actions.append(Action.Move(d3))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
                             actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce, max_layers)
@@ -407,9 +372,9 @@ class PlayerController:
                 actions.append(fb)
 
         # === COLLISION SAFETY ===
-        # Never end turn on a neutral cell within opponent's striking range.
-        # Opponent can multi-move (up to 3-4 steps) and kill us on neutral cells.
-        actions, stamina = self._ensure_safe_ending(board, pp, pos, opp, actions, stamina, painted)
+        # Skip safety backtrack when oscillating — the safety logic IS what causes oscillation
+        if not self._oscillation_override:
+            actions, stamina = self._ensure_safe_ending(board, pp, pos, opp, actions, stamina, painted)
 
         # FIX: ensure at least one Move survives
         if not any(isinstance(a, Action.Move) for a in actions):
@@ -511,20 +476,9 @@ class PlayerController:
             )
             camping_penalty = -80 if opp_on_hill else 0
 
-            # Centrality bonus: hills that are central on the map get a bonus
-            # (important for spiral-like maps where center = strategic dominance)
-            avg_dist_to_center = 0
-            board_center_r = board.board_size.r / 2
-            board_center_c = board.board_size.c / 2
-            for hloc in hill.cells:
-                avg_dist_to_center += abs(hloc.r - board_center_r) + abs(hloc.c - board_center_c)
-            avg_dist_to_center /= max(len(hill.cells), 1)
-            # Max bonus of 60 for center hills, scaling down with distance
-            centrality_bonus = max(0, 60 - avg_dist_to_center * 4)
-
             score = (race_adv * 8 + size_bonus + close_to_dom + steal_bonus
                      + late_bonus + commit_bonus + proximity_bonus
-                     + camping_penalty + centrality_bonus - to_paint * 5)
+                     + camping_penalty - to_paint * 5)
 
             if score > best_score:
                 best_score = score
@@ -640,15 +594,12 @@ class PlayerController:
         return actions, stamina
 
     def _paint_trail(self, board, pp, pos, actions, stamina, painted, buf, toward=None, reinforce_to=1):
-        """Paint at most 1 adjacent cell — new cells first, then reinforce up to reinforce_to.
-        reinforce_to=1: only new cells (default). reinforce_to=2: also add 2nd layer to own cells."""
+        """Paint ALL adjacent paintable cells — new cells first, then reinforce up to reinforce_to.
+        This is the key difference vs top players who paint 4-6 cells per position."""
         COST = GameConstants.PAINT_STAMINA_COST
-        if stamina - COST < buf:
-            return actions, stamina
 
-        best = None
-        best_score = -1
-
+        # Collect all paintable candidates with scores
+        candidates = []
         for d in Direction.cardinals():
             t = pos + d
             if board.oob(t):
@@ -662,12 +613,10 @@ class PlayerController:
             eff = base + added
 
             if c.owner_parity == 0 and added == 0:
-                # New cell — always highest priority
                 score = 50
                 if c.hill_id != 0:
                     score = 150
             elif c.owner_parity == pp and eff < reinforce_to:
-                # Our cell below reinforce cap — add a layer
                 score = 20
                 if c.hill_id != 0:
                     score = 80
@@ -676,13 +625,15 @@ class PlayerController:
 
             if toward and self._md(t, toward) < self._md(pos, toward):
                 score += 8
-            if score > best_score:
-                best_score = score
-                best = t
+            candidates.append((score, t))
 
-        if best:
-            actions.append(Action.Paint(best))
-            painted[best] = painted.get(best, 0) + 1
+        # Sort by score descending and paint ALL that we can afford
+        candidates.sort(key=lambda x: -x[0])
+        for _score, t in candidates:
+            if stamina - COST < buf:
+                break
+            actions.append(Action.Paint(t))
+            painted[t] = painted.get(t, 0) + 1
             stamina -= COST
 
         return actions, stamina
@@ -818,7 +769,6 @@ class PlayerController:
             actions.append(Action.Move(d1))
             p1 = pos + d1
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf)
-            actions, stamina = self._paint_trail(board, pp, p1, actions, stamina, painted, buf, target)
 
             if td > 2 and stamina >= GameConstants.EXTRA_MOVE_COST + buf + 5:
                 d2 = self._step_toward(board, p1, target, pp, opp.loc)
@@ -827,7 +777,6 @@ class PlayerController:
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
                     actions, stamina = self._paint_hill_cells(board, pp, p2, actions, stamina, painted, 15)
-                    actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, 15, target)
 
         if not any(isinstance(a, Action.Move) for a in actions):
             fb = self._fallback_move(board, pp, me, opp)
@@ -909,57 +858,30 @@ class PlayerController:
                     mid = me.loc + d1
                     if board.oob(mid) or board.cells[mid.r][mid.c].is_wall or mid == opp.loc:
                         continue
+                    # Don't walk through opponent territory to reach kill
+                    if board.cells[mid.r][mid.c].owner_parity == -pp:
+                        continue
                     for d2 in Direction.cardinals():
                         if mid + d2 == opp.loc:
                             return [Action.Move(d1), Action.Move(d2)]
-            if dist == 3 and stam >= GameConstants.EXTRA_MOVE_COST * 3 + 20:
-                for d1 in Direction.cardinals():
-                    p1 = me.loc + d1
-                    if board.oob(p1) or board.cells[p1.r][p1.c].is_wall or p1 == opp.loc:
-                        continue
-                    for d2 in Direction.cardinals():
-                        p2 = p1 + d2
-                        if board.oob(p2) or board.cells[p2.r][p2.c].is_wall or p2 == opp.loc:
-                            continue
-                        for d3 in Direction.cardinals():
-                            if p2 + d3 == opp.loc:
-                                return [Action.Move(d1), Action.Move(d2), Action.Move(d3)]
 
         # === HUNT: opponent on neutral cell within range — paint & rush ===
-        # If opponent is on a neutral cell (vulnerable to collision), exploit it
-        if oc.owner_parity == 0 and oc.beacon_parity == 0 and oc.owner_parity != -pp:
-            # 2-step: move adjacent, paint their cell, move in
-            if dist == 2 and stam >= GameConstants.EXTRA_MOVE_COST + GameConstants.PAINT_STAMINA_COST + 15:
+        # Only attempt if we're confident: adjacent kill with paint is safe,
+        # but multi-step hunts are risky and caused 3/5 collision deaths vs jmc
+        if oc.owner_parity == 0 and oc.beacon_parity == 0 and dist == 2:
+            if stam >= GameConstants.EXTRA_MOVE_COST + GameConstants.PAINT_STAMINA_COST + 15:
                 for d1 in Direction.cardinals():
                     mid = me.loc + d1
                     if board.oob(mid) or board.cells[mid.r][mid.c].is_wall or mid == opp.loc:
+                        continue
+                    # Only hunt through safe intermediate cells (our territory or neutral)
+                    mc = board.cells[mid.r][mid.c]
+                    if mc.owner_parity == -pp:
                         continue
                     if self._md(mid, opp.loc) == 1:
                         for d2 in Direction.cardinals():
                             if mid + d2 == opp.loc:
                                 return [Action.Move(d1), Action.Paint(opp.loc), Action.Move(d2)]
-            # 3-step: move, move adjacent, paint, move in
-            if dist == 3 and stam >= GameConstants.EXTRA_MOVE_COST * 3 + GameConstants.PAINT_STAMINA_COST + 10:
-                for d1 in Direction.cardinals():
-                    p1 = me.loc + d1
-                    if board.oob(p1) or board.cells[p1.r][p1.c].is_wall or p1 == opp.loc:
-                        continue
-                    for d2 in Direction.cardinals():
-                        p2 = p1 + d2
-                        if board.oob(p2) or board.cells[p2.r][p2.c].is_wall or p2 == opp.loc:
-                            continue
-                        if self._md(p2, opp.loc) == 1:
-                            for d3 in Direction.cardinals():
-                                if p2 + d3 == opp.loc:
-                                    return [Action.Move(d1), Action.Move(d2), Action.Paint(opp.loc), Action.Move(d3)]
-
-        # === HUNT: opponent on opponent-owned cell near our territory ===
-        # If we can paint the cell they're on (it's neutral) from 2 steps away
-        # then rush — they die on "our" cell
-        if oc.owner_parity == -pp and dist == 1:
-            # If we can erase their cell, we'd need 50 stamina — too expensive usually
-            # But if they're on a 1-layer cell, stepping weakens to 0, next turn we paint & kill
-            pass  # handled by normal movement + collision safety
 
         return None
 
@@ -991,7 +913,7 @@ class PlayerController:
             if c.owner_parity == pp and c.beacon_parity != -pp:
                 # On maze maps, corridor cells near opponent are unsafe even if painted
                 # because we have limited escape routes
-                if maze_map and _is_corridor(loc) and self._md(loc, opp.loc) <= 2:
+                if maze_map and _is_corridor(loc) and self._md(loc, opp.loc) <= 4:
                     return False
                 return True
             if self._md(loc, opp.loc) > opp_reach:
@@ -1497,132 +1419,6 @@ class PlayerController:
                 if self._md(pos, hloc) <= radius:
                     return True
         return False
-
-    def _hill_sweep(self, board, pp, me, opp, my_dist, stamina, hill_obj):
-        """Plan an efficient path through opponent-painted hill cells in a single turn.
-        Walk through opponent cells (weakening/erasing them), with paints in between.
-        Returns a list of actions, or empty list if no good sweep found."""
-        pos = me.loc
-        actions = []
-        painted = {}
-        buf = 5
-        cur = pos
-
-        # Find all opponent-painted cells on the hill
-        opp_hill_cells = []
-        for hloc in hill_obj.cells:
-            hc = board.cells[hloc.r][hloc.c]
-            if hc.owner_parity == -pp:
-                opp_hill_cells.append(hloc)
-
-        if not opp_hill_cells:
-            return []
-
-        # BFS from our position, prioritizing opponent hill cells
-        # Plan up to 3 moves
-        moves_made = 0
-        max_moves = 3
-        extra_cost = [0, 0, GameConstants.EXTRA_MOVE_COST, GameConstants.EXTRA_MOVE_COST * 2]
-
-        while moves_made < max_moves:
-            # Paint adjacent unpainted hill cells first
-            for d in Direction.cardinals():
-                t = cur + d
-                if board.oob(t):
-                    continue
-                c = board.cells[t.r][t.c]
-                if c.is_wall or c.beacon_parity != 0 or c.owner_parity == -pp:
-                    continue
-                if c.hill_id == 0:
-                    continue
-                if c.owner_parity == 0 and painted.get(t, 0) == 0:
-                    if stamina >= GameConstants.PAINT_STAMINA_COST + buf:
-                        actions.append(Action.Paint(t))
-                        stamina -= GameConstants.PAINT_STAMINA_COST
-                        painted[t] = painted.get(t, 0) + 1
-                        break  # one paint per position
-
-            # Find best adjacent opponent hill cell to step on
-            best_dir = None
-            best_score = -9999
-            for d in Direction.cardinals():
-                nxt = cur + d
-                if board.oob(nxt):
-                    continue
-                c = board.cells[nxt.r][nxt.c]
-                if c.is_wall:
-                    continue
-                if c.beacon_parity == -pp:
-                    continue
-                # Avoid collision on opponent cell near opponent
-                if nxt == opp.loc and c.owner_parity != pp:
-                    continue
-
-                score = 0
-                is_opp_hill = (c.hill_id != 0 and c.owner_parity == -pp)
-                if is_opp_hill:
-                    score = 100 + abs(c.paint_value) * 10  # prefer thicker paint
-                elif c.hill_id != 0 and c.owner_parity == 0:
-                    score = 50  # neutral hill cell — can paint it
-                else:
-                    score = -10  # not useful for sweep
-
-                if score > best_score:
-                    best_score = score
-                    best_dir = d
-
-            if best_dir is None or best_score <= 0:
-                break
-
-            nxt_pos = cur + best_dir
-            move_extra = extra_cost[moves_made] if moves_made < len(extra_cost) else GameConstants.EXTRA_MOVE_COST * moves_made
-            if stamina < move_extra + buf:
-                break
-
-            # Pre-paint neutral destination if opponent nearby (collision safety)
-            if not board.oob(nxt_pos):
-                nxt_c = board.cells[nxt_pos.r][nxt_pos.c]
-                if (nxt_c.owner_parity == 0 and nxt_c.beacon_parity == 0
-                        and not nxt_c.is_wall
-                        and self._md(nxt_pos, opp.loc) <= 4
-                        and stamina >= GameConstants.PAINT_STAMINA_COST + move_extra + buf):
-                    actions.append(Action.Paint(nxt_pos))
-                    stamina -= GameConstants.PAINT_STAMINA_COST
-                    painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-
-            # Use erase on 3+ layer opponent hill cells (not collision)
-            if nxt_pos != opp.loc and self._should_erase(board, pp, nxt_pos, stamina, buf + move_extra):
-                actions.append(Action.Move(best_dir, move_type=MoveType.ERASE))
-                stamina -= 50
-            else:
-                actions.append(Action.Move(best_dir))
-
-            stamina -= move_extra
-            cur = nxt_pos
-            moves_made += 1
-
-        # Must have at least one move
-        if not any(isinstance(a, Action.Move) for a in actions):
-            return []
-
-        return actions
-
-    def _should_erase(self, board, pp, target_loc, stamina, buf=0):
-        """Return True when we should use erase step on target_loc."""
-        if board.oob(target_loc):
-            return False
-        c = board.cells[target_loc.r][target_loc.c]
-        if c.beacon_parity != 0:
-            return False
-        if c.owner_parity != -pp:
-            return False
-        if abs(c.paint_value) < 3:
-            return False
-        if c.hill_id == 0:
-            return False
-        if stamina < 50 + buf:
-            return False
-        return True
 
     def _md(self, a, b):
         return abs(a.r - b.r) + abs(a.c - b.c)
