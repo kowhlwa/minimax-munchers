@@ -311,11 +311,11 @@ class PlayerController:
 
         def _make_move(direction, from_pos, current_stamina, current_buf):
             """Build move action, using erase on 3+ layer opponent hill cells.
-            Returns (Action.Move, stamina_cost) or None if can't afford erase."""
+            NEVER erase near opponent (neutral cell = collision death)."""
             nonlocal stamina
             dest = from_pos + direction
-            # Erase cannot initiate collision
-            if not board.oob(dest) and dest != opp.loc and self._should_erase(board, pp, dest, current_stamina, current_buf):
+            # Erase cannot initiate collision, and avoid erasing near opponent
+            if not board.oob(dest) and dest != opp.loc and self._should_erase(board, pp, dest, opp.loc, current_stamina, current_buf):
                 stamina -= GameConstants.ERASE_STEP_EXTRA_COST
                 return Action.Move(direction, move_type=MoveType.ERASE)
             return Action.Move(direction)
@@ -423,6 +423,33 @@ class PlayerController:
                     if not board.oob(nxt) and not board.cells[nxt.r][nxt.c].is_wall:
                         actions.append(Action.Move(d))
                         break
+
+        # === FINAL COLLISION GUARD ===
+        # NEVER end on a cell where the opponent is unless we own it.
+        # This prevents the #1 cause of losses (3 of 7 collision suicides).
+        final = self._simpos(board, pos, actions)
+        if final == opp.loc:
+            fc = board.cells[final.r][final.c]
+            if fc.owner_parity != pp:
+                # We'd die! Strip moves back until safe.
+                for trim in range(len(actions) - 1, -1, -1):
+                    if isinstance(actions[trim], Action.Move):
+                        trimmed = actions[:trim]
+                        test_pos = self._simpos(board, pos, trimmed)
+                        if test_pos != opp.loc:
+                            actions = trimmed
+                            break
+                # Re-ensure we have at least one move
+                if not any(isinstance(a, Action.Move) for a in actions):
+                    fb = self._fallback_move(board, pp, me, opp)
+                    if fb:
+                        actions.append(fb)
+                    else:
+                        for d in Direction.cardinals():
+                            nxt = pos + d
+                            if not board.oob(nxt) and not board.cells[nxt.r][nxt.c].is_wall and nxt != opp.loc:
+                                actions.append(Action.Move(d))
+                                break
 
         return actions if actions else [Action.Move(Direction.UP)]
 
@@ -1068,9 +1095,10 @@ class PlayerController:
             actions = _clean_and_repaint(actions, last_move_idx, new_final)
         return actions, stamina
 
-    def _should_erase(self, board, pp, loc, stamina, buf):
+    def _should_erase(self, board, pp, loc, opp_loc, stamina, buf):
         """Return True if we should erase-step onto this cell instead of regular step.
-        Use erase on opponent hill cells with 3+ layers — saves 2-3 revisits."""
+        Use erase on opponent hill cells with 3+ layers — saves 2-3 revisits.
+        NEVER erase if opponent is adjacent (erased cell becomes neutral = collision death)."""
         if board.oob(loc):
             return False
         c = board.cells[loc.r][loc.c]
@@ -1083,6 +1111,10 @@ class PlayerController:
         if abs(c.paint_value) < 3:
             return False
         if stamina < GameConstants.ERASE_STEP_EXTRA_COST + buf:
+            return False
+        # CRITICAL: erase makes cell neutral. If opponent is adjacent, they can
+        # walk in and we die on neutral. Don't erase when opponent is within 2.
+        if self._md(loc, opp_loc) <= 2:
             return False
         return True
 
