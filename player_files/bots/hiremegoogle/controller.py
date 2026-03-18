@@ -18,6 +18,8 @@ class PlayerController:
         self._map_info = None  # cached map classification
         self._pos_history = []  # last N positions for oscillation detection
         self._oscillation_override = False  # when True, skip safety backtrack
+        self._prev_opp_dist = 999  # for opponent approach detection
+        self._opp_approaching_count = 0  # consecutive turns opponent gets closer
 
     def bid(self, board: Board, player_parity: int, time_left) -> int:
         return 0
@@ -56,6 +58,18 @@ class PlayerController:
         else:
             self._oscillation_override = False
 
+        # === OPPONENT APPROACH DETECTION ===
+        curr_opp_dist = self._md(pos, opp.loc)
+        if curr_opp_dist < self._prev_opp_dist:
+            self._opp_approaching_count += 1
+        else:
+            self._opp_approaching_count = 0
+        self._prev_opp_dist = curr_opp_dist
+        opp_approaching = self._opp_approaching_count >= 3  # 3+ turns getting closer
+
+        # === OPENING PHASE: first 15 turns, paint aggressively ===
+        is_opening = board.turn_count < 30  # ~15 rounds
+
         # === KILL CHECK (always first) ===
         kill = self._try_kill(board, me, opp, pp, stamina)
         if kill is not None:
@@ -67,7 +81,10 @@ class PlayerController:
 
         # === ESCAPE: on enemy territory near opponent — but NOT if near a hill ===
         # On maze maps, increase escape trigger range since corridors limit escape routes
+        # If opponent is approaching (3+ turns getting closer), widen escape range
         escape_range = 4 if maze_map else 3
+        if opp_approaching and cell.owner_parity != pp:
+            escape_range = max(escape_range, 5)
         if not near_any_hill and cell.owner_parity == -pp and self._md(pos, opp.loc) <= escape_range:
             esc = self._escape_dir(board, pos, opp.loc, pp)
             if esc:
@@ -258,9 +275,13 @@ class PlayerController:
         if approaching_sudden_death and not in_sudden_death:
             buf = max(buf - 10, 5)
 
+        # During opening, minimize buffer — spend stamina on painting like top players
+        if is_opening:
+            buf = min(buf, 5)
+
         # === SHOULD WE PAINT TERRITORY EN ROUTE? ===
-        # When all hills claimed, paint territory while heading to contest opponent hills
-        paint_territory_en_route = all_hills_claimed or danger_zone
+        # ALWAYS paint en route — top players paint 1.9 cells/turn, we need to match
+        paint_territory_en_route = True
 
         # Double-layer trail when near opponent — single layer gets erased in one step
         trail_layers = 2 if danger_zone else 1
@@ -288,6 +309,17 @@ class PlayerController:
             else:
                 return self._step_toward(board, from_pos, target, pp, opp.loc, hill_target=targeting_hill)
 
+        def _make_move(direction, from_pos, current_stamina, current_buf):
+            """Build move action, using erase on 3+ layer opponent hill cells.
+            Returns (Action.Move, stamina_cost) or None if can't afford erase."""
+            nonlocal stamina
+            dest = from_pos + direction
+            # Erase cannot initiate collision
+            if not board.oob(dest) and dest != opp.loc and self._should_erase(board, pp, dest, current_stamina, current_buf):
+                stamina -= GameConstants.ERASE_STEP_EXTRA_COST
+                return Action.Move(direction, move_type=MoveType.ERASE)
+            return Action.Move(direction)
+
         d1 = _pick_step(pos)
         if d1:
             # Pre-paint destination if neutral and opponent within reach
@@ -301,7 +333,7 @@ class PlayerController:
                     actions.append(Action.Paint(nxt_pos))
                     stamina -= GameConstants.PAINT_STAMINA_COST
                     painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-            actions.append(Action.Move(d1))
+            actions.append(_make_move(d1, pos, stamina, buf))
             p1 = pos + d1
 
             actions, stamina = self._paint_hill_cells(board, pp, p1, actions, stamina, painted, buf, reinforce, max_layers)
@@ -326,7 +358,7 @@ class PlayerController:
                             actions.append(Action.Paint(nxt_pos))
                             stamina -= GameConstants.PAINT_STAMINA_COST
                             painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-                    actions.append(Action.Move(d2))
+                    actions.append(_make_move(d2, p1, stamina, buf))
                     stamina -= GameConstants.EXTRA_MOVE_COST
                     p2 = p1 + d2
 
@@ -335,9 +367,12 @@ class PlayerController:
                     if paint_territory_en_route or (large_map and td > 5):
                         actions, stamina = self._paint_trail(board, pp, p2, actions, stamina, painted, max(buf - 10, 15), target, trail_layers)
 
-                    # 3rd move — skip on maze maps (too expensive, paths are long)
-                    # On high-wall maps, require more headroom for 3rd move
-                    if not maze_map and td > 3 and stamina >= GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 10, 10) + int(20 * wall_ratio):
+                    # 3rd move — top players use 3 moves from turn 1
+                    # More aggressive threshold, especially during opening
+                    move3_threshold = GameConstants.EXTRA_MOVE_COST * 2 + max(buf - 10, 5) + int(20 * wall_ratio)
+                    if is_opening:
+                        move3_threshold = GameConstants.EXTRA_MOVE_COST * 2 + 5
+                    if not maze_map and td > 2 and stamina >= move3_threshold:
                         d3 = _pick_step(p2)
                         if d3 and (targeting_hill or not self._is_dangerous(board, p2 + d3, opp.loc, pp)):
                             # Pre-paint destination if neutral and opponent within reach
@@ -351,10 +386,11 @@ class PlayerController:
                                     actions.append(Action.Paint(nxt_pos))
                                     stamina -= GameConstants.PAINT_STAMINA_COST
                                     painted[nxt_pos] = painted.get(nxt_pos, 0) + 1
-                            actions.append(Action.Move(d3))
+                            actions.append(_make_move(d3, p2, stamina, buf))
                             stamina -= GameConstants.EXTRA_MOVE_COST * 2
                             p3 = p2 + d3
                             actions, stamina = self._paint_hill_cells(board, pp, p3, actions, stamina, painted, 10, reinforce, max_layers)
+                            actions, stamina = self._paint_trail(board, pp, p3, actions, stamina, painted, 5, target, trail_layers)
 
         # === POST-MOVE ===
         final = self._simpos(board, pos, actions)
@@ -1031,6 +1067,24 @@ class PlayerController:
             actions[last_move_idx] = Action.Move(best_dir)
             actions = _clean_and_repaint(actions, last_move_idx, new_final)
         return actions, stamina
+
+    def _should_erase(self, board, pp, loc, stamina, buf):
+        """Return True if we should erase-step onto this cell instead of regular step.
+        Use erase on opponent hill cells with 3+ layers — saves 2-3 revisits."""
+        if board.oob(loc):
+            return False
+        c = board.cells[loc.r][loc.c]
+        if c.beacon_parity != 0:
+            return False
+        if c.owner_parity != -pp:
+            return False
+        if c.hill_id == 0:
+            return False
+        if abs(c.paint_value) < 3:
+            return False
+        if stamina < GameConstants.ERASE_STEP_EXTRA_COST + buf:
+            return False
+        return True
 
     def _is_dangerous(self, board, loc, opp_loc, pp):
         if board.oob(loc):
