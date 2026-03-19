@@ -1,0 +1,159 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: the_temple (21x21)
+Walls: 118/441 (26.8%)
+Passable cells: 323
+Hills: 5 (IDs: [4, 1, 2, 5, 3])
+  Hill 4: 6 cells, center ~(4, 10)
+  Hill 1: 9 cells, center ~(10, 4)
+  Hill 2: 9 cells, center ~(10, 16)
+  Hill 5: 1 cells, center ~(10, 10)
+  Hill 3: 6 cells, center ~(15, 10)
+Result: PLAYER_1 by COLLISION after 112 turns
+Bids: P1=6, P2=0
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: P1
+P1 opening path (first 10): [(1, 10), (3, 10), (3, 10), (4, 10), (4, 10), (5, 10), (5, 10), (6, 10), (6, 10), (7, 10)]
+P2 opening path (first 10): [(19, 10), (19, 10), (16, 10), (16, 10), (15, 10), (15, 10), (16, 10), (16, 10), (15, 10), (15, 10)]
+Territory at turn 30: P1=18, P2=16
+P1 first hill capture: hill 4 at turn 3
+P2 first hill capture: hill 3 at turn 8
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 44
+P2 max territory: 50
+P1 final territory: 42
+P2 final territory: 50
+  At 25% game: P1=17, P2=16
+  At 50% game: P1=35, P2=31
+  At 75% game: P1=43, P2=41
+Early growth rate (first 50 turns): P1=0.6/turn, P2=0.54/turn
+Paint efficiency: P1=0.62 cells/paint, P2=0.62 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 56
+Total moves: 69, Total paints: 71
+Avg moves/turn: 1.23, Avg paints/turn: 1.27
+Max moves in a turn: 3
+Move count distribution: {1: 44, 2: 11, 3: 1}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 57
+Total moves: 65, Total paints: 80
+Avg moves/turn: 1.14, Avg paints/turn: 1.40
+Max moves in a turn: 3
+Move count distribution: {1: 50, 2: 6, 3: 1}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 74.1
+Min stamina: 14
+Max stamina reached: 220
+Turns below 20 stamina: 2
+Turns below 10 stamina: 0
+
+--- P2 Stamina ---
+Avg stamina: 36.2
+Min stamina: 5
+Max stamina reached: 220
+Turns below 20 stamina: 29
+Turns below 10 stamina: 4
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (9 cells):
+  Turn 34: → P2
+
+Hill 2 (9 cells):
+  Turn 39: → P1
+  Turn 112: → Neutral
+  Turn 113: → P1
+    P1 held for 73 turns
+    Neutral held for 1 turns
+
+Hill 3 (6 cells):
+  Turn 8: → P2
+
+Hill 4 (6 cells):
+  Turn 3: → P1
+
+Hill 5 (1 cells):
+  Turn 23: → P1
+  Turn 54: → Neutral
+  Turn 58: → P2
+    P1 held for 31 turns
+    Neutral held for 4 turns
+
+============================================================
+  COLLISIONS
+============================================================
+Total collisions: 1
+  Turn 113: at (11, 17), P2 died (acting: P2)
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 20.2%
+Top 5 cells: [((10, 13), 20), ((10, 11), 8), ((10, 10), 6), ((10, 14), 6), ((10, 12), 4)]
+
+--- P2 Movement ---
+% time on hills: 49.1%
+Top 5 cells: [((9, 15), 8), ((9, 17), 8), ((10, 10), 6), ((9, 14), 6), ((16, 10), 4)]
+
+Proximity: 20 turns within 3 Manhattan distance (17.5%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 3: Hill 4 → P1
+  Turn 8: Hill 3 → P2
+  Turn 23: Hill 5 → P1
+  Turn 34: Hill 1 → P2
+  Turn 39: Hill 2 → P1
+  Turn 54: Hill 5 → Neutral
+  Turn 58: Hill 5 → P2
+  Turn 112: Hill 2 → Neutral
+  Turn 113: COLLISION at (11, 17) — P2 died
+  Turn 113: Hill 2 → P1
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-10: Tied leading
+    P1 territory: 0 → 8
+    P2 territory: 0 → 6
+  Turns 10-100: P1 leading
+    P1 territory: 8 → 42
+    P2 territory: 6 → 44
+  Turns 100-113: P2 leading
+    P1 territory: 42 → 42
+    P2 territory: 44 → 50
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P1 by COLLISION
+Game length: 112 turns (56 rounds)
+
+KEY OBSERVATIONS:
+• Collision deaths: P1=0, P2=1
+• Hill captures: P1=4, P2=3
+• Territory dominance: P1 peaked at 44 cells

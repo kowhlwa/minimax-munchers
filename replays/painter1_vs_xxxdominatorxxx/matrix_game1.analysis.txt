@@ -1,0 +1,261 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: matrix (31x31)
+Walls: 130/961 (13.5%)
+Passable cells: 831
+Hills: 7 (IDs: [6, 7, 4, 2, 3, 1, 5])
+  Hill 6: 4 cells, center ~(15, 7)
+  Hill 7: 4 cells, center ~(15, 23)
+  Hill 4: 5 cells, center ~(6, 15)
+  Hill 2: 9 cells, center ~(15, 0)
+  Hill 3: 9 cells, center ~(15, 29)
+  Hill 1: 5 cells, center ~(15, 15)
+  Hill 5: 5 cells, center ~(24, 15)
+Result: PLAYER_2 by DOMINATION after 542 turns
+Bids: P1=6, P2=6
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: Random
+P1 opening path (first 10): [(0, 15), (0, 15), (2, 15), (2, 15), (3, 15), (3, 15), (4, 15), (4, 15), (5, 15), (5, 15)]
+P2 opening path (first 10): [(30, 15), (29, 15), (29, 15), (28, 15), (28, 15), (27, 15), (27, 15), (26, 15), (26, 15), (25, 15)]
+Territory at turn 30: P1=17, P2=16
+P1 first hill capture: hill 4 at turn 12
+P2 first hill capture: hill 5 at turn 13
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 229
+P2 max territory: 257
+P1 final territory: 224
+P2 final territory: 257
+  At 25% game: P1=90, P2=84
+  At 50% game: P1=159, P2=150
+  At 75% game: P1=170, P2=197
+Early growth rate (first 50 turns): P1=0.56/turn, P2=0.52/turn
+Paint efficiency: P1=0.55 cells/paint, P2=0.59 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 272
+Total moves: 462, Total paints: 417
+Avg moves/turn: 1.70, Avg paints/turn: 1.53
+Max moves in a turn: 4
+Move count distribution: {1: 153, 2: 55, 3: 57, 4: 7}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 271
+Total moves: 475, Total paints: 433
+Avg moves/turn: 1.75, Avg paints/turn: 1.60
+Max moves in a turn: 4
+Move count distribution: {1: 147, 2: 52, 3: 64, 4: 8}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 78.4
+Min stamina: 6
+Max stamina reached: 260
+Turns below 20 stamina: 16
+Turns below 10 stamina: 9
+
+--- P2 Stamina ---
+Avg stamina: 88.0
+Min stamina: 5
+Max stamina reached: 340
+Turns below 20 stamina: 9
+Turns below 10 stamina: 2
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (5 cells):
+  Turn 451: → P2
+
+Hill 2 (9 cells):
+  Turn 86: → P1
+  Turn 413: → Neutral
+  Turn 417: → P2
+    P1 held for 327 turns
+    Neutral held for 4 turns
+
+Hill 3 (9 cells):
+  Turn 89: → P2
+  Turn 238: → Neutral
+  Turn 242: → P1
+    P2 held for 149 turns
+    Neutral held for 4 turns
+
+Hill 4 (5 cells):
+  Turn 12: → P1
+  Turn 131: → Neutral
+  Turn 135: → P2
+  Turn 184: → Neutral
+  Turn 188: → P1
+  Turn 241: → Neutral
+  Turn 243: → P2
+  Turn 298: → P1
+  Turn 367: → Neutral
+  Turn 369: → P2
+  Turn 438: → P1
+  Turn 467: → Neutral
+  Turn 469: → P2
+  Turn 494: → Neutral
+  Turn 496: → P1
+  Turn 517: → Neutral
+  Turn 519: → P2
+    P1 held for 119 turns
+    Neutral held for 4 turns
+    P2 held for 49 turns
+    Neutral held for 4 turns
+    P1 held for 53 turns
+    Neutral held for 2 turns
+    P2 held for 55 turns
+    P1 held for 69 turns
+    Neutral held for 2 turns
+    P2 held for 69 turns
+    P1 held for 29 turns
+    Neutral held for 2 turns
+    P2 held for 25 turns
+    Neutral held for 2 turns
+    P1 held for 21 turns
+    Neutral held for 2 turns
+
+Hill 5 (5 cells):
+  Turn 13: → P2
+  Turn 124: → Neutral
+  Turn 128: → P1
+  Turn 323: → Neutral
+  Turn 325: → P2
+  Turn 470: → P1
+  Turn 491: → Neutral
+  Turn 493: → P2
+    P2 held for 111 turns
+    Neutral held for 4 turns
+    P1 held for 195 turns
+    Neutral held for 2 turns
+    P2 held for 145 turns
+    P1 held for 21 turns
+    Neutral held for 2 turns
+
+Hill 6 (4 cells):
+  Turn 46: → P1
+  Turn 175: → Neutral
+  Turn 177: → P2
+  Turn 328: → Neutral
+  Turn 330: → P1
+  Turn 393: → Neutral
+  Turn 395: → P2
+    P1 held for 129 turns
+    Neutral held for 2 turns
+    P2 held for 151 turns
+    Neutral held for 2 turns
+    P1 held for 63 turns
+    Neutral held for 2 turns
+
+Hill 7 (4 cells):
+  Turn 47: → P2
+  Turn 204: → Neutral
+  Turn 206: → P1
+  Turn 267: → Neutral
+  Turn 289: → P2
+  Turn 378: → Neutral
+  Turn 543: → P2
+    P2 held for 157 turns
+    Neutral held for 2 turns
+    P1 held for 61 turns
+    Neutral held for 22 turns
+    P2 held for 89 turns
+    Neutral held for 165 turns
+
+============================================================
+  COLLISIONS
+============================================================
+No collisions detected.
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 23.9%
+Top 5 cells: [((29, 23), 24), ((6, 13), 14), ((6, 17), 12), ((6, 14), 10), ((8, 8), 10)]
+
+--- P2 Movement ---
+% time on hills: 25.6%
+Top 5 cells: [((6, 13), 16), ((8, 23), 14), ((6, 14), 12), ((24, 17), 10), ((6, 17), 10)]
+
+Proximity: 0 turns within 3 Manhattan distance (0.0%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 12: Hill 4 → P1
+  Turn 13: Hill 5 → P2
+  Turn 46: Hill 6 → P1
+  Turn 47: Hill 7 → P2
+  Turn 86: Hill 2 → P1
+  Turn 89: Hill 3 → P2
+  Turn 124: Hill 5 → Neutral
+  Turn 128: Hill 5 → P1
+  Turn 131: Hill 4 → Neutral
+  Turn 135: Hill 4 → P2
+  Turn 175: Hill 6 → Neutral
+  Turn 177: Hill 6 → P2
+  Turn 184: Hill 4 → Neutral
+  Turn 188: Hill 4 → P1
+  Turn 204: Hill 7 → Neutral
+  Turn 206: Hill 7 → P1
+  Turn 238: Hill 3 → Neutral
+  Turn 241: Hill 4 → Neutral
+  Turn 242: Hill 3 → P1
+  Turn 243: Hill 4 → P2
+  Turn 267: Hill 7 → Neutral
+  Turn 289: Hill 7 → P2
+  Turn 298: Hill 4 → P1
+  Turn 323: Hill 5 → Neutral
+  Turn 325: Hill 5 → P2
+  Turn 328: Hill 6 → Neutral
+  Turn 330: Hill 6 → P1
+  Turn 367: Hill 4 → Neutral
+  Turn 369: Hill 4 → P2
+  Turn 378: Hill 7 → Neutral
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-54: Tied leading
+    P1 territory: 0 → 33
+    P2 territory: 0 → 29
+  Turns 54-243: P1 leading
+    P1 territory: 33 → 135
+    P2 territory: 29 → 143
+  Turns 243-270: P2 leading
+    P1 territory: 135 → 157
+    P2 territory: 143 → 150
+  Turns 270-324: P1 leading
+    P1 territory: 157 → 167
+    P2 territory: 150 → 170
+  Turns 324-543: P2 leading
+    P1 territory: 167 → 224
+    P2 territory: 170 → 257
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P2 by DOMINATION
+Game length: 542 turns (271 rounds)
+
+KEY OBSERVATIONS:
+• Hill captures: P1=12, P2=16
+• Territory dominance: P2 peaked at 257 cells

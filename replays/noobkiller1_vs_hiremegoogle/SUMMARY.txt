@@ -1,0 +1,88 @@
+BYTEFIGHT BATCH ANALYSIS: noobkiller1 vs hiremegoogle
+Date: 2026-03-18 16:08
+Games per map: 3
+
+  test_map       : 3/3 (100%) W=3 L=0 T=0
+    test_map_game1.json: WIN (COLLISION, 66t, as P1)
+    test_map_game2.json: WIN (DOMINATION, 42t, as P2)
+    test_map_game3.json: WIN (DOMINATION, 36t, as P1)
+  the_temple     : 2/3 (67%) W=2 L=1 T=0
+    the_temple_game1.json: LOSS (DOMINATION, 91t, as P1)
+    the_temple_game2.json: WIN (DOMINATION, 88t, as P2)
+    the_temple_game3.json: WIN (DOMINATION, 130t, as P1)
+  the_complex    : 3/3 (100%) W=3 L=0 T=0
+    the_complex_game1.json: WIN (DOMINATION, 246t, as P1)
+    the_complex_game2.json: WIN (COLLISION, 148t, as P2)
+    the_complex_game3.json: WIN (COLLISION, 148t, as P1)
+  matrix         : 3/3 (100%) W=3 L=0 T=0
+    matrix_game1.json: WIN (COLLISION, 444t, as P1)
+    matrix_game2.json: WIN (DOMINATION, 516t, as P2)
+    matrix_game3.json: WIN (DOMINATION, 470t, as P1)
+  maze           : 3/3 (100%) W=3 L=0 T=0
+    maze_game1.json: WIN (DOMINATION, 792t, as P1)
+    maze_game2.json: WIN (COLLISION, 262t, as P2)
+    maze_game3.json: WIN (DOMINATION, 866t, as P1)
+  spiral         : 2/3 (67%) W=2 L=1 T=0
+    spiral_game1.json: LOSS (DOMINATION, 143t, as P1)
+    spiral_game2.json: WIN (DOMINATION, 130t, as P2)
+    spiral_game3.json: WIN (DOMINATION, 114t, as P1)
+  disjoint       : 3/3 (100%) W=3 L=0 T=0
+    disjoint_game1.json: WIN (DOMINATION, 424t, as P1)
+    disjoint_game2.json: WIN (DOMINATION, 228t, as P2)
+    disjoint_game3.json: WIN (DOMINATION, 318t, as P1)
+  big_spiral     : 3/3 (100%) W=3 L=0 T=0
+    big_spiral_game1.json: WIN (COLLISION, 294t, as P1)
+    big_spiral_game2.json: WIN (COLLISION, 232t, as P2)
+    big_spiral_game3.json: WIN (COLLISION, 356t, as P1)
+
+Overall: 22/24 (91.7%) wins
+
+============================================================
+LOSS ANALYSIS (games where bot1 lost)
+============================================================
+
+--- the_temple_game1.json ---
+Map: the_temple
+Result: PLAYER_2 by DOMINATION
+Turns: 91
+Bot1 was: P1
+  P1 first hill capture: hill 4 at turn 3
+  P2 first hill capture: hill 3 at turn 8
+  COLLISIONS
+  No collisions detected.
+  Turn 3: Hill 4 → P1
+  Turn 8: Hill 3 → P2
+  Turn 27: Hill 5 → P1
+  Turn 36: Hill 1 → P2
+  Turn 43: Hill 2 → P1
+  Turn 60: Hill 5 → Neutral
+  Turn 64: Hill 5 → P2
+  Turn 90: Hill 4 → Neutral
+  Turn 92: Hill 4 → P2
+  • Hill captures: P1=3, P2=4
+  INVALID: P2 invalid turn at turn 92
+
+--- spiral_game1.json ---
+Map: spiral
+Result: PLAYER_2 by DOMINATION
+Turns: 143
+Bot1 was: P1
+  P1 first hill capture: hill 2 at turn 43
+  P2 first hill capture: hill 1 at turn 34
+  COLLISIONS
+  No collisions detected.
+  Turn 34: Hill 1 → P2
+  Turn 43: Hill 2 → P1
+  Turn 70: Hill 3 → P2
+  Turn 140: Hill 2 → Neutral
+  Turn 144: Hill 2 → P2
+  • Hill captures: P1=1, P2=3
+  INVALID: P2 invalid turn at turn 144
+
+============================================================
+WIN PATTERNS (common traits in wins)
+============================================================
+Win reasons: {'COLLISION': 8, 'DOMINATION': 14}
+Avg win turn count: 289
+Fastest win: 36 turns
+Slowest win: 866 turns

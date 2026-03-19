@@ -1,0 +1,319 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: 11,11#0,5#10,5#0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000#1,2,3#1,4,1,5,1,6,2,4,2,5,2,6,3,4,3,5,3,6_7,4,7,5,7,6,8,4,8,5,8,6,9,4,9,5,9,6_4,1,4,9,5,1,5,9,6,1,6,9#1#2,4,6_2,6,6_2,2,2_2,8,2_2,5,8_2,2,2_2,8,2_42,5,8_42,0,6_42,10,6_82,4,4_82,6,4_82,0,4_82,10,4_122,2,0_122,8,0_122,2,2_122,8,2_162,2,1_162,8,1_162,1,3_162,9,3_202,1,1_202,9,1_202,3,7_202,7,7_242,5,3_242,5,7_242,1,8_242,9,8_282,3,1_282,7,1_282,3,4_282,7,4_322,1,10_322,9,10_322,5,6_362,3,10_362,7,10_362,5,4_402,1,8_402,9,8_402,2,2_402,8,2_442,0,6_442,10,6_442,3,4_442,7,4_482,4,7_482,6,7_482,0,8_482,10,8_522,0,3_522,10,3_522,4,6_522,6,6_562,4,5_562,6,5_562,0,3_562,10,3_602,1,4_602,9,4_602,2,1_602,8,1_642,3,0_642,7,0_642,4,6_642,6,6_682,2,4_682,8,4_682,4,9_682,6,9_722,1,6_722,9,6_722,2,0_722,8,0_762,1,8_762,9,8_762,5,6_802,2,1_802,8,1_802,0,1_802,10,1_842,0,5_842,10,5_842,5,9_882,2,5_882,8,5_882,2,7_882,8,7_922,5,5_922,1,1_922,9,1_962,3,7_962,7,7_962,1,4_962,9,4_1002,5,3_1002,0,5_1002,10,5_1042,5,3_1042,1,0_1042,9,0_1082,1,1_1082,9,1_1082,4,8_1082,6,8_1122,4,2_1122,6,2_1122,3,6_1122,7,6_1162,2,1_1162,8,1_1162,1,10_1162,9,10_1202,3,5_1202,7,5_1202,1,2_1202,9,2_1242,2,1_1242,8,1_1242,2,6_1242,8,6_1282,4,2_1282,6,2_1282,4,0_1282,6,0_1322,1,2_1322,9,2_1322,4,0_1322,6,0_1362,1,7_1362,9,7_1362,1,10_1362,9,10_1402,1,1_1402,9,1_1402,0,5_1402,10,5_1442,2,0_1442,8,0_1442,3,5_1442,7,5_1482,4,7_1482,6,7_1482,2,10_1482,8,10_1522,3,4_1522,7,4_1522,4,7_1522,6,7_1562,5,7_1562,0,9_1562,10,9_1602,5,5_1602,0,0_1602,10,0_1642,4,4_1642,6,4_1642,4,1_1642,6,1_1682,1,7_1682,9,7_1682,4,0_1682,6,0_1722,2,0_1722,8,0_1722,0,5_1722,10,5_1762,0,0_1762,10,0_1762,4,10_1762,6,10_1802,0,6_1802,10,6_1802,2,10_1802,8,10_1842,4,6_1842,6,6_1842,5,1_1882,4,9_1882,6,9_1882,4,5_1882,6,5_1922,5,1_1922,10,5_1922,0,5_1962,4,2_1962,6,2_1962,5,6 (11x11)
+Walls: 0/121 (0.0%)
+Passable cells: 121
+Hills: 3 (IDs: [1, 3, 2])
+  Hill 1: 9 cells, center ~(2, 5)
+  Hill 3: 6 cells, center ~(5, 5)
+  Hill 2: 9 cells, center ~(8, 5)
+Result: PLAYER_2 by DOMINATION after 43 turns
+Bids: P1=6, P2=0
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: P1
+P1 opening path (first 10): [(0, 5), (1, 5), (1, 5), (2, 5), (2, 5), (2, 4), (2, 4), (1, 4), (1, 4), (2, 4)]
+P2 opening path (first 10): [(10, 5), (10, 5), (9, 5), (9, 5), (8, 5), (8, 5), (7, 5), (7, 5), (6, 4), (6, 4)]
+Territory at turn 30: P1=11, P2=11
+P1 first hill capture: hill 1 at turn 5
+P2 first hill capture: hill 2 at turn 6
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 11
+P2 max territory: 16
+P1 final territory: 7
+P2 final territory: 16
+  At 25% game: P1=6, P2=9
+  At 50% game: P1=9, P2=11
+  At 75% game: P1=9, P2=12
+Early growth rate (first 50 turns): P1=0.16/turn, P2=0.36/turn
+Paint efficiency: P1=0.48 cells/paint, P2=0.94 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 23
+Total moves: 24, Total paints: 23
+Avg moves/turn: 1.04, Avg paints/turn: 1.00
+Max moves in a turn: 2
+Move count distribution: {1: 22, 2: 1}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 21
+Total moves: 26, Total paints: 17
+Avg moves/turn: 1.24, Avg paints/turn: 0.81
+Max moves in a turn: 2
+Move count distribution: {1: 16, 2: 5}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 29.9
+Min stamina: 10
+Max stamina reached: 140
+Turns below 20 stamina: 11
+Turns below 10 stamina: 0
+
+--- P2 Stamina ---
+Avg stamina: 22.6
+Min stamina: 0
+Max stamina reached: 220
+Turns below 20 stamina: 27
+Turns below 10 stamina: 12
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (9 cells):
+  Turn 5: → P1
+  Turn 42: → Neutral
+  Turn 44: → P2
+    P1 held for 37 turns
+    Neutral held for 2 turns
+
+Hill 2 (9 cells):
+  Turn 6: → P2
+
+Hill 3 (6 cells):
+  Turn 20: → P2
+
+============================================================
+  COLLISIONS
+============================================================
+No collisions detected.
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 88.9%
+Top 5 cells: [((7, 4), 12), ((8, 4), 12), ((2, 4), 6), ((1, 4), 4), ((1, 5), 2)]
+
+--- P2 Movement ---
+% time on hills: 77.8%
+Top 5 cells: [((5, 1), 4), ((4, 1), 4), ((2, 4), 4), ((1, 4), 4), ((2, 5), 4)]
+
+Proximity: 1 turns within 3 Manhattan distance (2.2%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 5: Hill 1 → P1
+  Turn 6: Hill 2 → P2
+  Turn 20: Hill 3 → P2
+  Turn 42: Hill 1 → Neutral
+  Turn 44: Hill 1 → P2
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-10: Tied leading
+    P1 territory: 0 → 6
+    P2 territory: 0 → 9
+  Turns 10-44: P2 leading
+    P1 territory: 6 → 7
+    P2 territory: 9 → 16
+
+============================================================
+  TURN-BY-TURN ACTIONS (Verbose)
+============================================================
+
+Turn 1 (P1): P1@(1, 5) stam=19 | P2@(10, 5) stam=100
+  → Paint [1, 5]
+  → Paint [1, 5]
+  → Move DOWN [REGULAR]
+  → Paint [2, 5]
+  → Paint [1, 4]
+  → Paint [1, 6]
+
+Turn 2 (P2): P1@(1, 5) stam=32 | P2@(9, 5) stam=55
+  → Move UP [REGULAR]
+  → Paint [9, 6]
+  → Paint [8, 5]
+  → Paint [9, 4]
+
+Turn 3 (P1): P1@(2, 5) stam=17 | P2@(9, 5) stam=66
+  → Paint [2, 5]
+  → Move DOWN [REGULAR]
+
+Turn 4 (P2): P1@(2, 5) stam=30 | P2@(8, 5) stam=51
+  → Move UP [REGULAR]
+  → Paint [9, 5]
+
+Turn 5 (P1): P1@(2, 4) stam=15 | P2@(8, 5) stam=64
+  → Paint [3, 5]
+  → Move LEFT [REGULAR]
+
+Turn 6 (P2): P1@(2, 4) stam=30 | P2@(7, 5) stam=34
+  → Move UP [REGULAR]
+  → Paint [7, 4]
+  → Paint [7, 6]
+
+Turn 7 (P1): P1@(1, 4) stam=30 | P2@(7, 5) stam=51
+  → Move UP [REGULAR]
+
+Turn 8 (P2): P1@(1, 4) stam=45 | P2@(6, 4) stam=11
+  → Paint [6, 5]
+  → Move UP [REGULAR]
+  → Paint [6, 4]
+  → Move LEFT [REGULAR]
+
+Turn 9 (P1): P1@(2, 4) stam=15 | P2@(6, 4) stam=27
+  → Move DOWN [REGULAR]
+  → Paint [3, 4]
+  → Paint [1, 4]
+
+Turn 10 (P2): P1@(2, 4) stam=32 | P2@(6, 2) stam=2
+  → Paint [6, 3]
+  → Move LEFT [REGULAR]
+  → Move LEFT [REGULAR]
+
+Turn 11 (P1): P1@(1, 4) stam=32 | P2@(6, 2) stam=14
+  → Move UP [REGULAR]
+
+Turn 12 (P2): P1@(1, 4) stam=49 | P2@(6, 1) stam=14
+  → Move LEFT [REGULAR]
+
+Turn 13 (P1): P1@(2, 4) stam=34 | P2@(6, 1) stam=22
+  → Move DOWN [REGULAR]
+  → Paint [3, 4]
+
+Turn 14 (P2): P1@(2, 4) stam=51 | P2@(5, 1) stam=7
+  → Move UP [REGULAR]
+  → Paint [6, 1]
+
+Turn 15 (P1): P1@(3, 4) stam=21 | P2@(5, 1) stam=17
+  → Move DOWN [REGULAR]
+  → Paint [2, 4]
+  → Paint [2, 4]
+
+Turn 16 (P2): P1@(3, 4) stam=40 | P2@(4, 1) stam=2
+  → Move UP [REGULAR]
+  → Paint [5, 1]
+
+Turn 17 (P1): P1@(4, 4) stam=40 | P2@(4, 1) stam=14
+  → Move DOWN [REGULAR]
+
+Turn 18 (P2): P1@(4, 4) stam=53 | P2@(5, 1) stam=14
+  → Move DOWN [REGULAR]
+
+Turn 19 (P1): P1@(6, 4) stam=43 | P2@(5, 1) stam=26
+  → Move DOWN [REGULAR]
+  → Move DOWN [REGULAR]
+
+Turn 20 (P2): P1@(6, 4) stam=48 | P2@(4, 1) stam=11
+  → Paint [4, 1]
+  → Move UP [REGULAR]
+
+Turn 21 (P1): P1@(7, 4) stam=18 | P2@(4, 1) stam=25
+  → Paint [5, 4]
+  → Move DOWN [REGULAR]
+  → Paint [8, 4]
+
+Turn 22 (P2): P1@(7, 4) stam=28 | P2@(3, 2) stam=0
+  → Paint [3, 1]
+  → Move UP [REGULAR]
+  → Move RIGHT [REGULAR]
+
+Turn 23 (P1): P1@(8, 4) stam=13 | P2@(3, 2) stam=12
+  → Paint [7, 5]
+  → Move DOWN [REGULAR]
+
+Turn 24 (P2): P1@(8, 4) stam=23 | P2@(3, 4) stam=2
+  → Move RIGHT [REGULAR]
+  → Move RIGHT [REGULAR]
+
+Turn 25 (P1): P1@(7, 4) stam=23 | P2@(3, 4) stam=8
+  → Move UP [REGULAR]
+
+Turn 26 (P2): P1@(7, 4) stam=35 | P2@(2, 4) stam=8
+  → Move UP [REGULAR]
+
+Turn 27 (P1): P1@(8, 4) stam=20 | P2@(2, 4) stam=14
+  → Paint [8, 4]
+  → Move DOWN [REGULAR]
+
+Turn 28 (P2): P1@(8, 4) stam=30 | P2@(1, 4) stam=14
+  → Move UP [REGULAR]
+
+Turn 29 (P1): P1@(7, 4) stam=15 | P2@(1, 4) stam=20
+  → Paint [7, 4]
+  → Move UP [REGULAR]
+
+Turn 30 (P2): P1@(7, 4) stam=29 | P2@(2, 4) stam=20
+  → Move DOWN [REGULAR]
+
+Turn 31 (P1): P1@(8, 4) stam=14 | P2@(2, 4) stam=26
+  → Move DOWN [REGULAR]
+  → Paint [7, 4]
+
+Turn 32 (P2): P1@(8, 4) stam=26 | P2@(1, 4) stam=11
+  → Move UP [REGULAR]
+  → Paint [2, 4]
+
+Turn 33 (P1): P1@(7, 4) stam=11 | P2@(1, 4) stam=19
+  → Paint [7, 4]
+  → Move UP [REGULAR]
+
+Turn 34 (P2): P1@(7, 4) stam=25 | P2@(0, 4) stam=4
+  → Move UP [REGULAR]
+  → Paint [1, 4]
+
+Turn 35 (P1): P1@(8, 4) stam=10 | P2@(0, 4) stam=14
+  → Paint [7, 5]
+  → Move DOWN [REGULAR]
+
+Turn 36 (P2): P1@(8, 4) stam=22 | P2@(1, 5) stam=4
+  → Move RIGHT [REGULAR]
+  → Move DOWN [REGULAR]
+
+Turn 37 (P1): P1@(7, 4) stam=22 | P2@(1, 5) stam=14
+  → Move UP [REGULAR]
+
+Turn 38 (P2): P1@(7, 4) stam=36 | P2@(2, 5) stam=14
+  → Move DOWN [REGULAR]
+
+Turn 39 (P1): P1@(8, 4) stam=21 | P2@(2, 5) stam=24
+  → Paint [8, 4]
+  → Move DOWN [REGULAR]
+
+Turn 40 (P2): P1@(8, 4) stam=33 | P2@(3, 5) stam=9
+  → Move DOWN [REGULAR]
+  → Paint [3, 6]
+
+Turn 41 (P1): P1@(7, 4) stam=18 | P2@(3, 5) stam=21
+  → Paint [8, 3]
+  → Move UP [REGULAR]
+
+Turn 42 (P2): P1@(7, 4) stam=34 | P2@(2, 5) stam=6
+  → Move UP [REGULAR]
+  → Paint [3, 5]
+
+Turn 43 (P1): P1@(8, 4) stam=34 | P2@(2, 5) stam=20
+  → Move DOWN [REGULAR]
+
+Turn 44 (P1): P1@(8, 4) stam=-1 | P2@(1, 5) stam=5
+  → Move UP [REGULAR]
+  → Paint [2, 5]
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P2 by DOMINATION
+Game length: 43 turns (21 rounds)
+
+KEY OBSERVATIONS:
+• Hill captures: P1=1, P2=3
+• Territory dominance: P2 peaked at 16 cells

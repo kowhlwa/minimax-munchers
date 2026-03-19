@@ -1,0 +1,460 @@
+BYTEFIGHT BATCH ANALYSIS: painter1 vs painter1_old
+Date: 2026-03-18 10:32
+Games per map: 4
+
+  test_map       : 0/4 (0%) W=0 L=0 T=4
+    test_map_game1.json: TIE (TIEBREAK, 5t, as P1)
+    test_map_game2.json: TIE (TIEBREAK, 5t, as P2)
+    test_map_game3.json: TIE (TIEBREAK, 5t, as P1)
+    test_map_game4.json: TIE (TIEBREAK, 5t, as P2)
+  the_temple     : 0/4 (0%) W=0 L=3 T=1
+    the_temple_game1.json: TIE (TIEBREAK, 28t, as P1)
+    the_temple_game2.json: LOSS (DOMINATION, 78t, as P2)
+    the_temple_game3.json: LOSS (DOMINATION, 123t, as P1)
+    the_temple_game4.json: LOSS (DOMINATION, 128t, as P2)
+  the_complex    : 1/4 (25%) W=1 L=1 T=2
+    the_complex_game1.json: TIE (TIEBREAK, 174t, as P1)
+    the_complex_game2.json: TIE (TIEBREAK, 81t, as P2)
+    the_complex_game3.json: WIN (DOMINATION, 437t, as P1)
+    the_complex_game4.json: LOSS (DOMINATION, 169t, as P2)
+  matrix         : 0/4 (0%) W=0 L=4 T=0
+    matrix_game1.json: LOSS (DOMINATION, 807t, as P1)
+    matrix_game2.json: LOSS (TIEBREAK, 2000t, as P2)
+    matrix_game3.json: LOSS (DOMINATION, 252t, as P1)
+    matrix_game4.json: LOSS (DOMINATION, 498t, as P2)
+  maze           : 2/4 (50%) W=2 L=2 T=0
+    maze_game1.json: LOSS (DOMINATION, 1284t, as P1)
+    maze_game2.json: WIN (TIEBREAK, 2000t, as P2)
+    maze_game3.json: LOSS (COLLISION, 1103t, as P1)
+    maze_game4.json: WIN (DOMINATION, 682t, as P2)
+  spiral         : 2/4 (50%) W=2 L=0 T=2
+    spiral_game1.json: WIN (DOMINATION, 181t, as P1)
+    spiral_game2.json: TIE (TIEBREAK, 71t, as P2)
+    spiral_game3.json: TIE (TIEBREAK, 71t, as P1)
+    spiral_game4.json: WIN (TIEBREAK, 2000t, as P2)
+  disjoint       : 1/4 (25%) W=1 L=2 T=1
+    disjoint_game1.json: WIN (DOMINATION, 172t, as P1)
+    disjoint_game2.json: LOSS (DOMINATION, 179t, as P2)
+    disjoint_game3.json: LOSS (DOMINATION, 1684t, as P1)
+    disjoint_game4.json: TIE (TIEBREAK, 42t, as P2)
+  big_spiral     : 0/4 (0%) W=0 L=1 T=3
+    big_spiral_game1.json: TIE (TIEBREAK, 216t, as P1)
+    big_spiral_game2.json: LOSS (TIEBREAK, 2000t, as P2)
+    big_spiral_game3.json: TIE (TIEBREAK, 221t, as P1)
+    big_spiral_game4.json: TIE (TIEBREAK, 228t, as P2)
+
+Overall: 6/32 (18.8%) wins
+
+============================================================
+LOSS ANALYSIS (games where bot1 lost)
+============================================================
+
+--- the_temple_game2.json ---
+Map: the_temple
+Result: PLAYER_1 by DOMINATION
+Turns: 78
+Bot1 was: P2
+  P1 first hill capture: hill 4 at turn 3
+  P2 first hill capture: hill 3 at turn 6
+  COLLISIONS
+  No collisions detected.
+  Turn 3: Hill 4 → P1
+  Turn 6: Hill 3 → P2
+  Turn 25: Hill 5 → P1
+  Turn 36: Hill 5 → Neutral
+  Turn 37: Hill 2 → P1
+  Turn 40: Hill 5 → P2
+  Turn 54: Hill 1 → P2
+  Turn 57: Hill 5 → Neutral
+  Turn 61: Hill 5 → P1
+  Turn 77: Hill 3 → Neutral
+  Turn 79: Hill 3 → P1
+  • Hill captures: P1=5, P2=3
+
+--- the_temple_game3.json ---
+Map: the_temple
+Result: PLAYER_2 by DOMINATION
+Turns: 123
+Bot1 was: P1
+  P1 first hill capture: hill 4 at turn 3
+  P2 first hill capture: hill 3 at turn 4
+  COLLISIONS
+  No collisions detected.
+  Turn 3: Hill 4 → P1
+  Turn 4: Hill 3 → P2
+  Turn 29: Hill 5 → P1
+  Turn 36: Hill 1 → P2
+  Turn 45: Hill 2 → P1
+  Turn 50: Hill 5 → Neutral
+  Turn 54: Hill 5 → P2
+  Turn 71: Hill 5 → Neutral
+  Turn 72: Hill 4 → Neutral
+  Turn 74: Hill 4 → P2
+  Turn 75: Hill 5 → P1
+  Turn 93: Hill 3 → Neutral
+  Turn 95: Hill 3 → P1
+  Turn 98: Hill 5 → Neutral
+  Turn 102: Hill 5 → P2
+  Turn 118: Hill 3 → Neutral
+  Turn 124: Hill 3 → P2
+  • Hill captures: P1=5, P2=6
+
+--- the_temple_game4.json ---
+Map: the_temple
+Result: PLAYER_1 by DOMINATION
+Turns: 128
+Bot1 was: P2
+  P1 first hill capture: hill 4 at turn 3
+  P2 first hill capture: hill 3 at turn 6
+  COLLISIONS
+  No collisions detected.
+  Turn 3: Hill 4 → P1
+  Turn 6: Hill 3 → P2
+  Turn 30: Hill 5 → P2
+  Turn 33: Hill 1 → P1
+  Turn 45: Hill 5 → Neutral
+  Turn 49: Hill 5 → P1
+  Turn 50: Hill 2 → P2
+  Turn 68: Hill 5 → Neutral
+  Turn 71: Hill 3 → Neutral
+  Turn 72: Hill 5 → P2
+  Turn 73: Hill 3 → P1
+  Turn 112: Hill 3 → Neutral
+  Turn 113: Hill 5 → Neutral
+  Turn 116: Hill 3 → P2
+  Turn 117: Hill 5 → P1
+  Turn 127: Hill 2 → Neutral
+  Turn 129: Hill 2 → P1
+  • Hill captures: P1=6, P2=5
+  INVALID: P1 invalid turn at turn 129
+
+--- the_complex_game4.json ---
+Map: the_complex
+Result: PLAYER_1 by DOMINATION
+Turns: 169
+Bot1 was: P2
+  P1 first hill capture: hill 2 at turn 58
+  P2 first hill capture: hill 3 at turn 55
+  COLLISIONS
+  No collisions detected.
+  Turn 55: Hill 3 → P2
+  Turn 58: Hill 2 → P1
+  Turn 77: Hill 1 → P2
+  Turn 80: Hill 6 → P1
+  Turn 94: Hill 3 → Neutral
+  Turn 98: Hill 3 → P1
+  Turn 115: Hill 5 → P2
+  Turn 126: Hill 1 → Neutral
+  Turn 128: Hill 1 → P1
+  Turn 145: Hill 4 → P2
+  Turn 164: Hill 5 → Neutral
+  Turn 170: Hill 5 → P1
+  • Hill captures: P1=5, P2=4
+  INVALID: P1 invalid turn at turn 170
+
+--- matrix_game1.json ---
+Map: matrix
+Result: PLAYER_2 by DOMINATION
+Turns: 807
+Bot1 was: P1
+  P1 first hill capture: hill 4 at turn 13
+  P2 first hill capture: hill 5 at turn 12
+  COLLISIONS
+  No collisions detected.
+  Turn 12: Hill 5 → P2
+  Turn 13: Hill 4 → P1
+  Turn 47: Hill 7 → P1
+  Turn 50: Hill 6 → P2
+  Turn 86: Hill 2 → P2
+  Turn 89: Hill 3 → P1
+  Turn 129: Hill 5 → Neutral
+  Turn 130: Hill 4 → Neutral
+  Turn 133: Hill 5 → P1
+  Turn 134: Hill 4 → P2
+  Turn 175: Hill 4 → Neutral
+  Turn 176: Hill 5 → Neutral
+  Turn 179: Hill 4 → P1
+  Turn 180: Hill 5 → P2
+  Turn 216: Hill 4 → Neutral
+  Turn 217: Hill 5 → P1
+  Turn 218: Hill 4 → P2
+  Turn 245: Hill 1 → P1
+  Turn 263: Hill 4 → Neutral
+  Turn 264: Hill 5 → Neutral
+  Turn 265: Hill 4 → P1
+  Turn 266: Hill 5 → P2
+  Turn 308: Hill 4 → P2
+  Turn 315: Hill 5 → P1
+  Turn 352: Hill 5 → P2
+  Turn 387: Hill 4 → Neutral
+  Turn 389: Hill 4 → P1
+  Turn 402: Hill 7 → Neutral
+  Turn 424: Hill 4 → Neutral
+  Turn 426: Hill 4 → P2
+  • Hill captures: P1=17, P2=20
+
+--- matrix_game2.json ---
+Map: matrix
+Result: PLAYER_1 by TIEBREAK
+Turns: 2000
+Bot1 was: P2
+  P1 first hill capture: hill 4 at turn 12
+  P2 first hill capture: hill 5 at turn 13
+  COLLISIONS
+  No collisions detected.
+  Turn 12: Hill 4 → P1
+  Turn 13: Hill 5 → P2
+  Turn 43: Hill 7 → P2
+  Turn 46: Hill 6 → P1
+  Turn 77: Hill 3 → P2
+  Turn 84: Hill 2 → P1
+  Turn 119: Hill 4 → Neutral
+  Turn 123: Hill 4 → P2
+  Turn 126: Hill 5 → Neutral
+  Turn 128: Hill 5 → P1
+  Turn 166: Hill 7 → Neutral
+  Turn 168: Hill 7 → P1
+  Turn 171: Hill 5 → P2
+  Turn 194: Hill 5 → Neutral
+  Turn 196: Hill 5 → P1
+  Turn 245: Hill 5 → Neutral
+  Turn 247: Hill 5 → P2
+  Turn 268: Hill 5 → P1
+  Turn 269: Hill 7 → Neutral
+  Turn 271: Hill 7 → P2
+  Turn 290: Hill 1 → P1
+  Turn 301: Hill 5 → Neutral
+  Turn 303: Hill 5 → P2
+  Turn 326: Hill 7 → Neutral
+  Turn 333: Hill 6 → Neutral
+  Turn 358: Hill 5 → Neutral
+  Turn 362: Hill 5 → P1
+  Turn 363: Hill 6 → P2
+  Turn 378: Hill 7 → P1
+  Turn 405: Hill 5 → P2
+  • Hill captures: P1=11, P2=10
+
+--- matrix_game3.json ---
+Map: matrix
+Result: PLAYER_2 by DOMINATION
+Turns: 252
+Bot1 was: P1
+  P1 first hill capture: hill 4 at turn 12
+  P2 first hill capture: hill 5 at turn 13
+  COLLISIONS
+  No collisions detected.
+  Turn 12: Hill 4 → P1
+  Turn 13: Hill 5 → P2
+  Turn 46: Hill 6 → P1
+  Turn 57: Hill 4 → Neutral
+  Turn 59: Hill 4 → P2
+  Turn 90: Hill 4 → Neutral
+  Turn 93: Hill 7 → P2
+  Turn 94: Hill 4 → P1
+  Turn 120: Hill 7 → Neutral
+  Turn 135: Hill 6 → Neutral
+  Turn 153: Hill 6 → P2
+  Turn 174: Hill 7 → P1
+  Turn 175: Hill 2 → P2
+  Turn 199: Hill 1 → P2
+  Turn 202: Hill 3 → P1
+  Turn 215: Hill 4 → Neutral
+  Turn 217: Hill 4 → P2
+  Turn 237: Hill 7 → Neutral
+  Turn 253: Hill 7 → P2
+  • Hill captures: P1=5, P2=8
+
+--- matrix_game4.json ---
+Map: matrix
+Result: PLAYER_1 by DOMINATION
+Turns: 498
+Bot1 was: P2
+  P1 first hill capture: hill 4 at turn 13
+  P2 first hill capture: hill 5 at turn 12
+  COLLISIONS
+  No collisions detected.
+  Turn 12: Hill 5 → P2
+  Turn 13: Hill 4 → P1
+  Turn 46: Hill 6 → P2
+  Turn 47: Hill 7 → P1
+  Turn 84: Hill 2 → P2
+  Turn 89: Hill 3 → P1
+  Turn 124: Hill 4 → Neutral
+  Turn 126: Hill 4 → P2
+  Turn 131: Hill 5 → P1
+  Turn 169: Hill 6 → Neutral
+  Turn 171: Hill 6 → P1
+  Turn 174: Hill 5 → Neutral
+  Turn 176: Hill 5 → P2
+  Turn 197: Hill 5 → P1
+  Turn 215: Hill 1 → P1
+  Turn 218: Hill 7 → Neutral
+  Turn 248: Hill 7 → P2
+  Turn 249: Hill 4 → Neutral
+  Turn 251: Hill 4 → P1
+  Turn 280: Hill 4 → Neutral
+  Turn 286: Hill 4 → P2
+  Turn 321: Hill 4 → Neutral
+  Turn 323: Hill 4 → P1
+  Turn 340: Hill 5 → Neutral
+  Turn 344: Hill 5 → P2
+  Turn 367: Hill 7 → Neutral
+  Turn 380: Hill 4 → Neutral
+  Turn 382: Hill 4 → P2
+  Turn 391: Hill 7 → P1
+  Turn 404: Hill 6 → Neutral
+  • Hill captures: P1=13, P2=9
+  INVALID: P1 invalid turn at turn 499
+
+--- maze_game1.json ---
+Map: maze
+Result: PLAYER_2 by DOMINATION
+Turns: 1284
+Bot1 was: P1
+  P1 first hill capture: hill 1 at turn 38
+  P2 first hill capture: hill 3 at turn 39
+  COLLISIONS
+  No collisions detected.
+  Turn 38: Hill 1 → P1
+  Turn 39: Hill 3 → P2
+  Turn 78: Hill 2 → P1
+  Turn 83: Hill 4 → P2
+  Turn 138: Hill 5 → P1
+  Turn 173: Hill 1 → P2
+  Turn 192: Hill 3 → P1
+  Turn 215: Hill 2 → P2
+  Turn 268: Hill 1 → Neutral
+  Turn 270: Hill 1 → P1
+  Turn 287: Hill 3 → Neutral
+  Turn 289: Hill 3 → P2
+  Turn 310: Hill 2 → Neutral
+  Turn 312: Hill 2 → P1
+  Turn 385: Hill 1 → Neutral
+  Turn 387: Hill 1 → P2
+  Turn 408: Hill 3 → Neutral
+  Turn 410: Hill 3 → P1
+  Turn 425: Hill 2 → Neutral
+  Turn 427: Hill 2 → P2
+  Turn 528: Hill 1 → Neutral
+  Turn 530: Hill 1 → P1
+  Turn 531: Hill 3 → Neutral
+  Turn 533: Hill 3 → P2
+  Turn 568: Hill 2 → Neutral
+  Turn 570: Hill 2 → P1
+  Turn 599: Hill 1 → Neutral
+  Turn 601: Hill 1 → P2
+  Turn 637: Hill 2 → Neutral
+  Turn 639: Hill 2 → P2
+  • Hill captures: P1=19, P2=21
+
+--- maze_game3.json ---
+Map: maze
+Result: PLAYER_2 by COLLISION
+Turns: 1103
+Bot1 was: P1
+  Result: PLAYER_2 by COLLISION after 1103 turns
+  P1 first hill capture: hill 1 at turn 39
+  P2 first hill capture: hill 3 at turn 38
+  COLLISIONS
+  Total collisions: 1
+  Turn 38: Hill 3 → P2
+  Turn 39: Hill 1 → P1
+  Turn 78: Hill 4 → P2
+  Turn 83: Hill 2 → P1
+  Turn 138: Hill 5 → P2
+  Turn 171: Hill 3 → P1
+  Turn 190: Hill 1 → P2
+  Turn 213: Hill 4 → P1
+  Turn 266: Hill 3 → Neutral
+  Turn 268: Hill 3 → P2
+  Turn 289: Hill 1 → Neutral
+  Turn 291: Hill 1 → P1
+  Turn 308: Hill 4 → Neutral
+  Turn 310: Hill 4 → P2
+  Turn 365: Hill 3 → Neutral
+  Turn 367: Hill 3 → P1
+  Turn 386: Hill 1 → Neutral
+  Turn 388: Hill 1 → P2
+  Turn 405: Hill 4 → Neutral
+  Turn 407: Hill 4 → P1
+  Turn 464: Hill 3 → Neutral
+  Turn 466: Hill 3 → P2
+  Turn 479: Hill 1 → Neutral
+  Turn 481: Hill 1 → P1
+  Turn 502: Hill 4 → Neutral
+  Turn 504: Hill 4 → P2
+  Turn 555: Hill 3 → Neutral
+  Turn 557: Hill 3 → P1
+  Turn 578: Hill 1 → Neutral
+  Turn 580: Hill 1 → P2
+  Winner: P2 by COLLISION
+  • Collision deaths: P1=1, P2=0
+  • Hill captures: P1=17, P2=17
+
+--- disjoint_game2.json ---
+Map: disjoint
+Result: PLAYER_1 by DOMINATION
+Turns: 179
+Bot1 was: P2
+  P1 first hill capture: hill 3 at turn 20
+  P2 first hill capture: hill 4 at turn 17
+  COLLISIONS
+  No collisions detected.
+  Turn 17: Hill 4 → P2
+  Turn 20: Hill 3 → P1
+  Turn 47: Hill 1 → P2
+  Turn 68: Hill 2 → P1
+  Turn 85: Hill 2 → Neutral
+  Turn 96: Hill 1 → Neutral
+  Turn 126: Hill 1 → P1
+  Turn 172: Hill 4 → Neutral
+  Turn 180: Hill 4 → P1
+  • Hill captures: P1=4, P2=2
+  INVALID: P1 invalid turn at turn 180
+
+--- disjoint_game3.json ---
+Map: disjoint
+Result: PLAYER_2 by DOMINATION
+Turns: 1684
+Bot1 was: P1
+  P1 first hill capture: hill 3 at turn 20
+  P2 first hill capture: hill 4 at turn 19
+  COLLISIONS
+  No collisions detected.
+  Turn 19: Hill 4 → P2
+  Turn 20: Hill 3 → P1
+  Turn 47: Hill 1 → P2
+  Turn 50: Hill 1 → Neutral
+  Turn 1568: Hill 2 → P1
+  Turn 1579: Hill 1 → P2
+  Turn 1611: Hill 3 → Neutral
+  Turn 1642: Hill 1 → Neutral
+  Turn 1651: Hill 3 → P2
+  Turn 1679: Hill 2 → Neutral
+  Turn 1685: Hill 2 → P2
+  • Hill captures: P1=2, P2=5
+  INVALID: P2 invalid turn at turn 1685
+
+--- big_spiral_game2.json ---
+Map: big_spiral
+Result: PLAYER_1 by TIEBREAK
+Turns: 2000
+Bot1 was: P2
+  P1 first hill capture: hill 5 at turn 125
+  P2 first hill capture: hill 4 at turn 128
+  COLLISIONS
+  No collisions detected.
+  Turn 125: Hill 5 → P1
+  Turn 128: Hill 4 → P2
+  Turn 155: Hill 2 → P1
+  Turn 160: Hill 3 → P2
+  Turn 213: Hill 1 → P1
+  • Hill captures: P1=3, P2=2
+
+============================================================
+WIN PATTERNS (common traits in wins)
+============================================================
+Win reasons: {'DOMINATION': 4, 'TIEBREAK': 2}
+Avg win turn count: 912
+Fastest win: 172 turns
+Slowest win: 2000 turns

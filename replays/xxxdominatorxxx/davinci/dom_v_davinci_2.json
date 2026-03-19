@@ -1,0 +1,2230 @@
+{
+    "p1_bid": 6,
+    "p2_bid": 0,
+    "p1_time_left": [
+        180.0,
+        179.99743601912633,
+        179.99743601912633,
+        179.99498385144398,
+        179.99498385144398,
+        179.99260514508933,
+        179.99260514508933,
+        179.98928331723437,
+        179.98928331723437,
+        179.986232759431,
+        179.986232759431,
+        179.98354767542332,
+        179.98354767542332,
+        179.98113687802106,
+        179.98113687802106,
+        179.97854491090402,
+        179.97854491090402,
+        179.97605019714683,
+        179.97605019714683,
+        179.97359151113778,
+        179.97359151113778,
+        179.97117509087548,
+        179.97117509087548,
+        179.96884464565665,
+        179.96884464565665,
+        179.9662190717645,
+        179.9662190717645,
+        179.96380868088454,
+        179.96380868088454,
+        179.9613317567855,
+        179.9613317567855,
+        179.95880634477362,
+        179.95880634477362,
+        179.9563739746809,
+        179.9563739746809,
+        179.95366882067174,
+        179.95366882067174,
+        179.9510540580377,
+        179.9510540580377,
+        179.94806089019403,
+        179.94806089019403,
+        179.94382087001577,
+        179.94382087001577
+    ],
+    "p2_time_left": [
+        180.0,
+        180.0,
+        179.99806644115597,
+        179.99806644115597,
+        179.9972557122819,
+        179.9972557122819,
+        179.99146049004048,
+        179.99146049004048,
+        179.98934696102515,
+        179.98934696102515,
+        179.98784633120522,
+        179.98784633120522,
+        179.98493795609102,
+        179.98493795609102,
+        179.98239716002718,
+        179.98239716002718,
+        179.9777609668672,
+        179.9777609668672,
+        179.97422390477732,
+        179.97422390477732,
+        179.97257798584178,
+        179.97257798584178,
+        179.97147457301617,
+        179.97147457301617,
+        179.9704141006805,
+        179.9704141006805,
+        179.96848698565736,
+        179.96848698565736,
+        179.96474524168298,
+        179.96474524168298,
+        179.96381749073043,
+        179.96381749073043,
+        179.9598533688113,
+        179.9598533688113,
+        179.95885097468272,
+        179.95885097468272,
+        179.95788492588326,
+        179.95788492588326,
+        179.9566431301646,
+        179.9566431301646,
+        179.95487774629146,
+        179.95487774629146,
+        179.954059492331
+    ],
+    "p1_loc": [
+        [
+            0,
+            5
+        ],
+        [
+            1,
+            5
+        ],
+        [
+            1,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            2,
+            4
+        ],
+        [
+            2,
+            4
+        ],
+        [
+            3,
+            4
+        ],
+        [
+            3,
+            4
+        ],
+        [
+            4,
+            4
+        ],
+        [
+            4,
+            4
+        ],
+        [
+            5,
+            4
+        ],
+        [
+            5,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            5,
+            4
+        ],
+        [
+            5,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            4
+        ]
+    ],
+    "p2_loc": [
+        [
+            10,
+            5
+        ],
+        [
+            10,
+            5
+        ],
+        [
+            9,
+            5
+        ],
+        [
+            9,
+            5
+        ],
+        [
+            8,
+            5
+        ],
+        [
+            8,
+            5
+        ],
+        [
+            7,
+            5
+        ],
+        [
+            7,
+            5
+        ],
+        [
+            6,
+            3
+        ],
+        [
+            6,
+            3
+        ],
+        [
+            6,
+            1
+        ],
+        [
+            6,
+            1
+        ],
+        [
+            7,
+            1
+        ],
+        [
+            7,
+            1
+        ],
+        [
+            6,
+            1
+        ],
+        [
+            6,
+            1
+        ],
+        [
+            5,
+            1
+        ],
+        [
+            5,
+            1
+        ],
+        [
+            4,
+            1
+        ],
+        [
+            4,
+            1
+        ],
+        [
+            3,
+            1
+        ],
+        [
+            3,
+            1
+        ],
+        [
+            3,
+            2
+        ],
+        [
+            3,
+            2
+        ],
+        [
+            3,
+            3
+        ],
+        [
+            3,
+            3
+        ],
+        [
+            3,
+            4
+        ],
+        [
+            3,
+            4
+        ],
+        [
+            3,
+            5
+        ],
+        [
+            3,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            2,
+            6
+        ],
+        [
+            2,
+            6
+        ],
+        [
+            1,
+            6
+        ],
+        [
+            1,
+            6
+        ],
+        [
+            0,
+            6
+        ],
+        [
+            0,
+            6
+        ],
+        [
+            1,
+            5
+        ],
+        [
+            1,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            2,
+            5
+        ],
+        [
+            1,
+            5
+        ]
+    ],
+    "p1_stamina": [
+        100,
+        19,
+        32,
+        17,
+        30,
+        50,
+        65,
+        20,
+        39,
+        24,
+        37,
+        37,
+        46,
+        46,
+        51,
+        21,
+        35,
+        20,
+        32,
+        17,
+        29,
+        14,
+        30,
+        15,
+        31,
+        16,
+        30,
+        15,
+        31,
+        16,
+        30,
+        15,
+        33,
+        18,
+        34,
+        19,
+        37,
+        22,
+        38,
+        23,
+        43,
+        43,
+        -1
+    ],
+    "p2_stamina": [
+        100,
+        100,
+        55,
+        66,
+        51,
+        64,
+        69,
+        86,
+        11,
+        27,
+        2,
+        12,
+        12,
+        22,
+        7,
+        19,
+        4,
+        18,
+        3,
+        19,
+        4,
+        16,
+        1,
+        15,
+        0,
+        16,
+        16,
+        26,
+        11,
+        21,
+        6,
+        19,
+        4,
+        17,
+        17,
+        30,
+        15,
+        26,
+        1,
+        20,
+        20,
+        39,
+        24
+    ],
+    "p1_max_stamina": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        100,
+        100,
+        100
+    ],
+    "p2_max_stamina": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        180,
+        220
+    ],
+    "p1_territory": [
+        0,
+        4,
+        4,
+        4,
+        4,
+        5,
+        5,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        9,
+        9,
+        10,
+        10,
+        11,
+        11,
+        12,
+        12,
+        13,
+        13,
+        13,
+        13,
+        13,
+        12,
+        12,
+        12,
+        13,
+        13,
+        13,
+        12,
+        12,
+        12,
+        12,
+        12,
+        13,
+        12,
+        12,
+        11
+    ],
+    "p2_territory": [
+        0,
+        0,
+        3,
+        3,
+        4,
+        4,
+        6,
+        6,
+        9,
+        9,
+        10,
+        10,
+        10,
+        9,
+        10,
+        10,
+        11,
+        11,
+        12,
+        11,
+        12,
+        12,
+        13,
+        13,
+        14,
+        14,
+        14,
+        14,
+        15,
+        15,
+        16,
+        16,
+        17,
+        17,
+        17,
+        17,
+        18,
+        18,
+        19,
+        19,
+        19,
+        19,
+        20
+    ],
+    "parity_playing": [
+        0,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        1,
+        1
+    ],
+    "paint_updates": [
+        {},
+        {
+            "15": 1,
+            "16": 2,
+            "17": 1,
+            "27": 1
+        },
+        {
+            "93": -1,
+            "103": -1,
+            "105": -1
+        },
+        {
+            "27": 2
+        },
+        {
+            "104": -1
+        },
+        {
+            "38": 1
+        },
+        {
+            "81": -1,
+            "83": -1
+        },
+        {
+            "15": 2,
+            "26": 1,
+            "37": 1
+        },
+        {
+            "69": -1,
+            "70": -1,
+            "71": -1
+        },
+        {
+            "37": 2
+        },
+        {
+            "68": -1
+        },
+        {},
+        {},
+        {
+            "70": 0
+        },
+        {
+            "67": -1
+        },
+        {
+            "59": 1,
+            "70": 1
+        },
+        {
+            "56": -1
+        },
+        {
+            "48": 1
+        },
+        {
+            "45": -1
+        },
+        {
+            "81": 0,
+            "92": 1
+        },
+        {
+            "34": -1
+        },
+        {
+            "82": 1
+        },
+        {
+            "35": -1
+        },
+        {
+            "81": 1
+        },
+        {
+            "36": -1
+        },
+        {
+            "81": 2
+        },
+        {
+            "37": 1
+        },
+        {
+            "81": 3
+        },
+        {
+            "38": 0,
+            "39": -1
+        },
+        {
+            "92": 2
+        },
+        {
+            "27": 1,
+            "38": -1
+        },
+        {
+            "91": 1
+        },
+        {
+            "28": -1
+        },
+        {
+            "82": 2
+        },
+        {
+            "17": 0
+        },
+        {
+            "92": 3
+        },
+        {
+            "17": -1
+        },
+        {
+            "82": 3
+        },
+        {
+            "5": -1,
+            "16": 1
+        },
+        {
+            "80": 1
+        },
+        {
+            "27": 0
+        },
+        {},
+        {
+            "16": 0,
+            "27": -1
+        }
+    ],
+    "beacon_updates": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "powerup_updates": [
+        {},
+        {},
+        {},
+        {},
+        {
+            "14": true,
+            "19": true,
+            "21": true,
+            "27": true,
+            "93": true,
+            "102": true,
+            "107": true,
+            "109": true
+        },
+        {
+            "27": false
+        },
+        {
+            "93": false
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "hill_updates": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            "1": 1
+        },
+        {
+            "2": -1
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            "3": -1
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+            "1": 0
+        },
+        {},
+        {
+            "1": -1
+        }
+    ],
+    "hill_mapping": [
+        [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0
+        ],
+        [
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0
+        ],
+        [
+            0,
+            3,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            2,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            2,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            2,
+            0,
+            0,
+            0,
+            0
+        ],
+        [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]
+    ],
+    "walls": [
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ],
+        [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+        ]
+    ],
+    "actions": [
+        "NONE",
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    5
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    2,
+                    5
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    4
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    6
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    9,
+                    6
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    8,
+                    5
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    9,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    2,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    9,
+                    5
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    4
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    6
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    4
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    2,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    3
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    2
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    5,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    6,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    5,
+                    1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    4,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    4,
+                    1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    8,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "RIGHT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    3
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "RIGHT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "RIGHT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "RIGHT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    6
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    8,
+                    4
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    3,
+                    5
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    8,
+                    3
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    2,
+                    6
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "RIGHT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    8,
+                    4
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    1,
+                    6
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Paint",
+                "location": [
+                    0,
+                    5
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "LEFT",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    7,
+                    3
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "DOWN",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            }
+        ],
+        [
+            {
+                "name": "Move",
+                "direction": "UP",
+                "move_type": "REGULAR",
+                "place_beacon": false,
+                "beacon_target": [
+                    -1,
+                    -1
+                ]
+            },
+            {
+                "name": "Paint",
+                "location": [
+                    2,
+                    5
+                ]
+            }
+        ]
+    ],
+    "turn_count": 41,
+    "result": "PLAYER_2",
+    "reason": "DOMINATION",
+    "p1_err": "",
+    "p2_err": "",
+    "p1_commentary": "dom h=0v3 t=11v20 s=-1/100 r=20",
+    "p2_commentary": "phase=2 | our_hills=3/3 | opp_hills=0/3 | win_threshold=3 | our_stamina=24 | opp_stamina=-1 | territory=20",
+    "map_string": "11,11#0,5#10,5#0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000#1,2,3#1,4,1,5,1,6,2,4,2,5,2,6,3,4,3,5,3,6_7,4,7,5,7,6,8,4,8,5,8,6,9,4,9,5,9,6_4,1,4,9,5,1,5,9,6,1,6,9#1#2,1,10_2,9,10_2,2,5_2,8,5_2,1,3_2,9,3_2,1,8_2,9,8_42,1,5_42,9,5_42,2,6_42,8,6_82,0,3_82,10,3_82,1,6_82,9,6_122,5,6_122,0,3_122,10,3_162,1,6_162,9,6_162,2,4_162,8,4_202,5,5_202,1,6_202,9,6_242,2,8_242,8,8_242,0,5_242,10,5_282,1,6_282,9,6_282,0,7_282,10,7_322,3,8_322,7,8_322,0,10_322,10,10_362,0,8_362,10,8_362,2,4_362,8,4_402,5,10_402,4,2_402,6,2_442,2,2_442,8,2_442,5,3_482,4,6_482,6,6_482,5,4_522,0,6_522,10,6_522,0,2_522,10,2_562,4,7_562,6,7_562,5,2_602,1,9_602,9,9_602,2,0_602,8,0_642,0,7_642,10,7_642,0,4_642,10,4_682,5,8_682,5,7_682,5,1_722,3,10_722,7,10_722,1,4_722,9,4_762,5,6_762,0,6_762,10,6_802,1,4_802,9,4_802,5,10_842,1,1_842,9,1_842,1,7_842,9,7_882,5,2_882,4,7_882,6,7_922,2,1_922,8,1_922,0,2_922,10,2_962,1,6_962,9,6_962,1,5_962,9,5_1002,1,1_1002,9,1_1002,0,8_1002,10,8_1042,2,4_1042,8,4_1042,0,8_1042,10,8_1082,10,5_1082,0,5_1082,4,1_1082,6,1_1122,2,1_1122,8,1_1122,0,7_1122,10,7_1162,4,6_1162,6,6_1162,5,6_1202,5,0_1202,5,3_1202,0,8_1202,10,8_1242,5,6_1242,4,4_1242,6,4_1282,1,6_1282,9,6_1282,0,2_1282,10,2_1322,0,6_1322,10,6_1322,5,10_1362,2,5_1362,8,5_1362,3,2_1362,7,2_1402,2,0_1402,8,0_1402,4,7_1402,6,7_1442,3,3_1442,7,3_1442,5,6_1482,1,10_1482,9,10_1482,4,3_1482,6,3_1522,3,9_1522,7,9_1522,4,8_1522,6,8_1562,2,2_1562,8,2_1562,4,10_1562,6,10_1602,1,2_1602,9,2_1602,3,8_1602,7,8_1642,5,4_1642,3,3_1642,7,3_1682,3,4_1682,7,4_1682,0,6_1682,10,6_1722,0,6_1722,10,6_1722,1,7_1722,9,7_1762,2,8_1762,8,8_1762,1,7_1762,9,7_1802,0,2_1802,10,2_1802,1,5_1802,9,5_1842,3,5_1842,7,5_1842,5,3_1882,0,9_1882,10,9_1882,3,9_1882,7,9_1922,5,2_1922,3,10_1922,7,10_1962,1,5_1962,9,5_1962,0,6_1962,10,6",
+    "engine_version": "1.0.1",
+    "cpu": "brand:Intel Core i7 9xx (Nehalem Class Core i7), arch: x86_64, processor: , platform: Linux-6.8.0-94-generic-x86_64-with-glibc2.41"
+}

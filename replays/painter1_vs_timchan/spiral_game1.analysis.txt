@@ -1,0 +1,132 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: spiral (17x17)
+Walls: 90/289 (31.1%)
+Passable cells: 199
+Hills: 4 (IDs: [1, 4, 3, 2])
+  Hill 1: 5 cells, center ~(2, 1)
+  Hill 4: 6 cells, center ~(8, 8)
+  Hill 3: 5 cells, center ~(8, 8)
+  Hill 2: 5 cells, center ~(13, 14)
+Result: PLAYER_1 by TIEBREAK after 2000 turns
+Bids: P1=6, P2=6
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: Random
+P1 opening path (first 10): [(16, 0), (14, 0), (14, 0), (13, 0), (13, 0), (13, 1), (13, 1), (13, 2), (13, 2), (14, 2)]
+P2 opening path (first 10): [(0, 16), (0, 16), (2, 16), (2, 16), (3, 16), (3, 16), (3, 15), (3, 15), (3, 14), (3, 14)]
+Territory at turn 30: P1=20, P2=19
+P1 first hill capture: hill 2 at turn 39
+P2 first hill capture: hill 1 at turn 40
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 52
+P2 max territory: 50
+P1 final territory: 52
+P2 final territory: 50
+  At 25% game: P1=52, P2=50
+  At 50% game: P1=52, P2=50
+  At 75% game: P1=52, P2=50
+Early growth rate (first 50 turns): P1=0.62/turn, P2=0.6/turn
+Paint efficiency: P1=0.8 cells/paint, P2=0.83 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 1000
+Total moves: 1957, Total paints: 65
+Avg moves/turn: 1.96, Avg paints/turn: 0.07
+Max moves in a turn: 2
+Move count distribution: {1: 43, 2: 957}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 1000
+Total moves: 1003, Total paints: 60
+Avg moves/turn: 1.00, Avg paints/turn: 0.06
+Max moves in a turn: 2
+Move count distribution: {1: 997, 2: 3}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 168.4
+Min stamina: 7
+Max stamina reached: 180
+Turns below 20 stamina: 4
+Turns below 10 stamina: 1
+
+--- P2 Stamina ---
+Avg stamina: 135.9
+Min stamina: 13
+Max stamina reached: 140
+Turns below 20 stamina: 5
+Turns below 10 stamina: 0
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (5 cells):
+  Turn 40: → P2
+
+Hill 2 (5 cells):
+  Turn 39: → P1
+
+Hill 3 (5 cells):
+  Turn 73: → P1
+
+============================================================
+  COLLISIONS
+============================================================
+No collisions detected.
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 0.7%
+Top 5 cells: [((10, 5), 960), ((10, 7), 956), ((10, 6), 6), ((7, 10), 4), ((14, 0), 2)]
+
+--- P2 Movement ---
+% time on hills: 48.4%
+Top 5 cells: [((9, 6), 963), ((9, 7), 960), ((3, 1), 4), ((4, 1), 4), ((7, 6), 4)]
+
+Proximity: 1924 turns within 3 Manhattan distance (96.2%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 39: Hill 2 → P1
+  Turn 40: Hill 1 → P2
+  Turn 73: Hill 3 → P1
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-100: Tied leading
+    P1 territory: 0 → 52
+    P2 territory: 0 → 50
+  Turns 100-2000: P1 leading
+    P1 territory: 52 → 52
+    P2 territory: 50 → 50
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P1 by TIEBREAK
+Game length: 2000 turns (1000 rounds)
+
+KEY OBSERVATIONS:
+• Hill captures: P1=2, P2=1
+• Territory dominance: P1 peaked at 52 cells

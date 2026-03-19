@@ -1,0 +1,129 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: the_temple (21x21)
+Walls: 118/441 (26.8%)
+Passable cells: 323
+Hills: 5 (IDs: [4, 1, 2, 5, 3])
+  Hill 4: 6 cells, center ~(4, 10)
+  Hill 1: 9 cells, center ~(10, 4)
+  Hill 2: 9 cells, center ~(10, 16)
+  Hill 5: 1 cells, center ~(10, 10)
+  Hill 3: 6 cells, center ~(15, 10)
+Result: TIE by TIEBREAK after 55 turns
+Bids: P1=25, P2=6
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: P1
+P1 opening path (first 10): [(1, 10), (2, 10), (2, 10), (3, 10), (3, 10), (2, 10), (2, 10), (3, 10), (3, 10), (4, 10)]
+P2 opening path (first 10): [(19, 10), (19, 10), (17, 10), (17, 10), (16, 10), (16, 10), (15, 10), (15, 10), (14, 10), (14, 10)]
+Territory at turn 30: P1=11, P2=18
+P1 first hill capture: hill 4 at turn 15
+P2 first hill capture: hill 3 at turn 4
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 16
+P2 max territory: 31
+P1 final territory: 15
+P2 final territory: 31
+  At 25% game: P1=6, P2=10
+  At 50% game: P1=11, P2=18
+  At 75% game: P1=11, P2=28
+Early growth rate (first 50 turns): P1=0.26/turn, P2=0.58/turn
+Paint efficiency: P1=0.47 cells/paint, P2=0.89 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 28
+Total moves: 28, Total paints: 34
+Avg moves/turn: 1.00, Avg paints/turn: 1.21
+Max moves in a turn: 1
+Move count distribution: {1: 28}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 28
+Total moves: 32, Total paints: 35
+Avg moves/turn: 1.14, Avg paints/turn: 1.25
+Max moves in a turn: 3
+Move count distribution: {1: 25, 2: 2, 3: 1}
+Erases: 1, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 32.8
+Min stamina: 15
+Max stamina reached: 140
+Turns below 20 stamina: 12
+Turns below 10 stamina: 0
+
+--- P2 Stamina ---
+Avg stamina: 42.4
+Min stamina: 6
+Max stamina reached: 140
+Turns below 20 stamina: 4
+Turns below 10 stamina: 3
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 3 (6 cells):
+  Turn 4: → P2
+
+Hill 4 (6 cells):
+  Turn 15: → P1
+
+============================================================
+  COLLISIONS
+============================================================
+No collisions detected.
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 49.1%
+Top 5 cells: [((5, 10), 12), ((4, 10), 8), ((5, 11), 6), ((5, 12), 6), ((2, 10), 4)]
+
+--- P2 Movement ---
+% time on hills: 24.6%
+Top 5 cells: [((4, 9), 6), ((10, 7), 4), ((19, 10), 2), ((17, 10), 2), ((16, 10), 2)]
+
+Proximity: 2 turns within 3 Manhattan distance (3.5%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 4: Hill 3 → P2
+  Turn 15: Hill 4 → P1
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-10: Tied leading
+    P1 territory: 0 → 6
+    P2 territory: 0 → 8
+  Turns 10-56: P2 leading
+    P1 territory: 6 → 15
+    P2 territory: 8 → 31
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P2 by TIEBREAK
+Game length: 55 turns (27 rounds)
+
+KEY OBSERVATIONS:
+• Hill captures: P1=1, P2=1
+• Territory dominance: P2 peaked at 31 cells

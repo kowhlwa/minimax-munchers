@@ -1,0 +1,137 @@
+BYTEFIGHT 2026: PAINT — GAME REPLAY ANALYSIS
+Map: test_map (11x11)
+Walls: 0/121 (0.0%)
+Passable cells: 121
+Hills: 3 (IDs: [1, 3, 2])
+  Hill 1: 9 cells, center ~(2, 5)
+  Hill 3: 6 cells, center ~(5, 5)
+  Hill 2: 9 cells, center ~(8, 5)
+Result: PLAYER_1 by DOMINATION after 47 turns
+Bids: P1=6, P2=35
+
+============================================================
+  OPENING (First 30 Turns)
+============================================================
+First mover: P2
+P1 opening path (first 10): [(0, 5), (0, 5), (1, 5), (1, 5), (2, 5), (2, 5), (3, 5), (3, 5), (3, 6), (3, 6)]
+P2 opening path (first 10): [(10, 5), (9, 5), (9, 5), (8, 5), (8, 5), (9, 5), (9, 5), (8, 5), (8, 5), (7, 5)]
+Territory at turn 30: P1=14, P2=8
+P1 first hill capture: hill 1 at turn 4
+P2 first hill capture: hill 2 at turn 15
+
+============================================================
+  TERRITORY ANALYSIS
+============================================================
+P1 max territory: 19
+P2 max territory: 19
+P1 final territory: 19
+P2 final territory: 18
+  At 25% game: P1=9, P2=4
+  At 50% game: P1=13, P2=8
+  At 75% game: P1=16, P2=14
+Early growth rate (first 50 turns): P1=0.39/turn, P2=0.37/turn
+Paint efficiency: P1=0.76 cells/paint, P2=0.5 cells/paint
+
+============================================================
+  ACTION ANALYSIS
+============================================================
+
+--- P1 Actions ---
+Turns played: 23
+Total moves: 28, Total paints: 25
+Avg moves/turn: 1.22, Avg paints/turn: 1.09
+Max moves in a turn: 2
+Move count distribution: {1: 18, 2: 5}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+--- P2 Actions ---
+Turns played: 25
+Total moves: 25, Total paints: 38
+Avg moves/turn: 1.00, Avg paints/turn: 1.52
+Max moves in a turn: 1
+Move count distribution: {1: 25}
+Erases: 0, Beacon travels: 0, Beacon places: 0
+
+============================================================
+  STAMINA ANALYSIS
+============================================================
+
+--- P1 Stamina ---
+Avg stamina: 30.9
+Min stamina: 6
+Max stamina reached: 220
+Turns below 20 stamina: 11
+Turns below 10 stamina: 4
+
+--- P2 Stamina ---
+Avg stamina: 47.8
+Min stamina: 16
+Max stamina reached: 140
+Turns below 20 stamina: 1
+Turns below 10 stamina: 0
+
+============================================================
+  HILL CONTROL TIMELINE
+============================================================
+
+Hill 1 (9 cells):
+  Turn 4: → P1
+
+Hill 2 (9 cells):
+  Turn 15: → P2
+  Turn 46: → Neutral
+  Turn 48: → P1
+    P2 held for 31 turns
+    Neutral held for 2 turns
+
+Hill 3 (6 cells):
+  Turn 20: → P1
+
+============================================================
+  COLLISIONS
+============================================================
+No collisions detected.
+
+============================================================
+  MOVEMENT PATTERNS
+============================================================
+
+--- P1 Movement ---
+% time on hills: 59.2%
+Top 5 cells: [((7, 4), 6), ((7, 6), 4), ((8, 5), 4), ((0, 5), 2), ((1, 5), 2)]
+
+--- P2 Movement ---
+% time on hills: 57.1%
+Top 5 cells: [((8, 5), 10), ((9, 5), 6), ((7, 5), 4), ((1, 3), 4), ((1, 4), 4)]
+
+Proximity: 1 turns within 3 Manhattan distance (2.0%)
+
+============================================================
+  CRITICAL MOMENTS (Turning Points)
+============================================================
+  Turn 4: Hill 1 → P1
+  Turn 15: Hill 2 → P2
+  Turn 20: Hill 3 → P1
+  Turn 46: Hill 2 → Neutral
+  Turn 48: Hill 2 → P1
+
+============================================================
+  GAME PHASES
+============================================================
+  Turns 0-10: Tied leading
+    P1 territory: 0 → 9
+    P2 territory: 0 → 3
+  Turns 10-48: P1 leading
+    P1 territory: 9 → 19
+    P2 territory: 3 → 18
+
+============================================================
+  SUMMARY FOR BOT DEVELOPMENT
+============================================================
+
+Winner: P1 by DOMINATION
+Game length: 47 turns (23 rounds)
+
+KEY OBSERVATIONS:
+• Hill captures: P1=3, P2=1
+• Territory dominance: P1 peaked at 19 cells

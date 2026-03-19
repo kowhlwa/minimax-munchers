@@ -1,0 +1,43 @@
+BYTEFIGHT BATCH ANALYSIS: painter1 vs hiremegoogle
+Date: 2026-03-18 10:34
+Games per map: 2
+
+  test_map       : 1/2 (50%) W=1 L=0 T=1
+    test_map_game1.json: WIN (TIEBREAK, 2000t, as P1)
+    test_map_game2.json: TIE (TIEBREAK, 13t, as P2)
+  the_temple     : 2/2 (100%) W=2 L=0 T=0
+    the_temple_game1.json: WIN (COLLISION, 112t, as P1)
+    the_temple_game2.json: WIN (TIEBREAK, 2000t, as P2)
+  the_complex    : 1/2 (50%) W=1 L=0 T=1
+    the_complex_game1.json: WIN (DOMINATION, 230t, as P1)
+    the_complex_game2.json: TIE (TIEBREAK, 122t, as P2)
+  matrix         : 2/2 (100%) W=2 L=0 T=0
+    matrix_game1.json: WIN (TIEBREAK, 2000t, as P1)
+    matrix_game2.json: WIN (DOMINATION, 328t, as P2)
+  maze           : 2/2 (100%) W=2 L=0 T=0
+    maze_game1.json: WIN (COLLISION, 266t, as P1)
+    maze_game2.json: WIN (COLLISION, 350t, as P2)
+  spiral         : 1/2 (50%) W=1 L=0 T=1
+    spiral_game1.json: TIE (TIEBREAK, 72t, as P1)
+    spiral_game2.json: WIN (DOMINATION, 150t, as P2)
+  disjoint       : 2/2 (100%) W=2 L=0 T=0
+    disjoint_game1.json: WIN (DOMINATION, 92t, as P1)
+    disjoint_game2.json: WIN (COLLISION, 1986t, as P2)
+  big_spiral     : 2/2 (100%) W=2 L=0 T=0
+    big_spiral_game1.json: WIN (TIEBREAK, 2000t, as P1)
+    big_spiral_game2.json: WIN (TIEBREAK, 2000t, as P2)
+
+Overall: 13/16 (81.2%) wins
+
+============================================================
+LOSS ANALYSIS (games where bot1 lost)
+============================================================
+No losses! 🎉
+
+============================================================
+WIN PATTERNS (common traits in wins)
+============================================================
+Win reasons: {'TIEBREAK': 5, 'COLLISION': 4, 'DOMINATION': 4}
+Avg win turn count: 1040
+Fastest win: 92 turns
+Slowest win: 2000 turns

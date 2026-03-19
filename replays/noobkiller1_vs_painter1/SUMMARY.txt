@@ -1,0 +1,22 @@
+BYTEFIGHT BATCH ANALYSIS: noobkiller1 vs painter1
+Date: 2026-03-18 18:25
+Games per map: 2
+
+  spiral         : 2/2 (100%) W=2 L=0 T=0
+    spiral_game1.json: WIN (DOMINATION, 233t, as P1)
+    spiral_game2.json: WIN (DOMINATION, 189t, as P2)
+
+Overall: 2/2 (100.0%) wins
+
+============================================================
+LOSS ANALYSIS (games where bot1 lost)
+============================================================
+No losses! 🎉
+
+============================================================
+WIN PATTERNS (common traits in wins)
+============================================================
+Win reasons: {'DOMINATION': 2}
+Avg win turn count: 211
+Fastest win: 189 turns
+Slowest win: 233 turns
