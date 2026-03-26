@@ -58,7 +58,10 @@
                                 <a class="variable" href="#GameConstants.ADJACENCY_RADIUS">ADJACENCY_RADIUS</a>
                         </li>
                         <li>
-                                <a class="variable" href="#GameConstants.BEACON_REGEN_BONUS">BEACON_REGEN_BONUS</a>
+                                <a class="variable" href="#GameConstants.GLOBAL_PAINT_REGEN_RATIO">GLOBAL_PAINT_REGEN_RATIO</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GameConstants.GLOBAL_PAINT_REGEN_CAP">GLOBAL_PAINT_REGEN_CAP</a>
                         </li>
                         <li>
                                 <a class="variable" href="#GameConstants.EXTRA_MOVE_COST">EXTRA_MOVE_COST</a>
@@ -114,6 +117,15 @@
                         <li>
                                 <a class="variable" href="#GameConstants.ALLOW_DIAGONAL_MOVES">ALLOW_DIAGONAL_MOVES</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#GameConstants.GLOBAL_DECAY_TURN_THRESHOLD">GLOBAL_DECAY_TURN_THRESHOLD</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GameConstants.GLOBAL_DECAY_INTERVAL">GLOBAL_DECAY_INTERVAL</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GameConstants.GLOBAL_DECAY_REGEN_PENALTY">GLOBAL_DECAY_REGEN_PENALTY</a>
+                        </li>
                 </ul>
 
             </li>
@@ -150,31 +162,38 @@
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>	<span class="n">STAMINA_POWERUP_AMOUNT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">35</span>	
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>	
 </span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>	<span class="n">BASE_STAMINA_REGEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>	
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>	<span class="n">ADJACENT_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>	
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>	<span class="n">ADJACENCY_RADIUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>	
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>	<span class="n">BEACON_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>	
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>	<span class="n">EXTRA_MOVE_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>	<span class="n">ERASE_STEP_EXTRA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>	<span class="n">BEACON_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>	<span class="n">BEACON_REQUIREMENT_Q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>	<span class="n">BEACON_WINDOW_SIZE_P</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>	<span class="n">BEACON_CONSUME_LEFTOVER_PAINT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>	<span class="n">MAX_PAINT_VALUE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>	<span class="n">PAINT_STAMINA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>	<span class="n">PAINT_RANGE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>	<span class="n">HILL_CONTROL_THRESHOLD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.33</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>	<span class="n">BID_MAX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>	<span class="n">CONSTRUCT_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>	<span class="n">BID_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>	<span class="n">PLAY_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>	<span class="n">COMMENTATE_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>	<span class="n">TIME_TIEBREAK_THRESH</span> <span class="o">=</span> <span class="mi">5</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>	<span class="n">DOMINATION_WIN_THRESHOLD</span> <span class="o">=</span> <span class="mf">.75</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>	<span class="n">ALLOW_DIAGONAL_MOVES</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>	<span class="n">ADJACENT_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>	
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>	<span class="n">ADJACENCY_RADIUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>	
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>	<span class="n">GLOBAL_PAINT_REGEN_RATIO</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>	<span class="n">GLOBAL_PAINT_REGEN_CAP</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>	<span class="c1"># BEACON_REGEN_BONUS: int = 0</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>	
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>	<span class="n">EXTRA_MOVE_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>	<span class="n">ERASE_STEP_EXTRA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>	<span class="n">BEACON_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>	<span class="n">BEACON_REQUIREMENT_Q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>	<span class="n">BEACON_WINDOW_SIZE_P</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>	<span class="n">BEACON_CONSUME_LEFTOVER_PAINT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>	<span class="n">MAX_PAINT_VALUE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>	<span class="n">PAINT_STAMINA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>	<span class="n">PAINT_RANGE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>	<span class="n">HILL_CONTROL_THRESHOLD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>	<span class="n">BID_MAX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>	<span class="n">CONSTRUCT_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>	<span class="n">BID_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>	<span class="n">PLAY_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">180.0</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>	<span class="n">COMMENTATE_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>	<span class="n">TIME_TIEBREAK_THRESH</span> <span class="o">=</span> <span class="mf">0.5</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>	<span class="n">DOMINATION_WIN_THRESHOLD</span> <span class="o">=</span> <span class="mf">.75</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>	<span class="n">ALLOW_DIAGONAL_MOVES</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>	<span class="c1"># endgame / global regen decay settings</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>	<span class="n">GLOBAL_DECAY_TURN_THRESHOLD</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>	<span class="n">GLOBAL_DECAY_INTERVAL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>	<span class="n">GLOBAL_DECAY_REGEN_PENALTY</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># amount subtracted from base regen each interval</span>
 </span></pre></div>
 
 
@@ -202,31 +221,38 @@
 </span><span id="GameConstants-11"><a href="#GameConstants-11"><span class="linenos">11</span></a>	<span class="n">STAMINA_POWERUP_AMOUNT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">35</span>	
 </span><span id="GameConstants-12"><a href="#GameConstants-12"><span class="linenos">12</span></a>	
 </span><span id="GameConstants-13"><a href="#GameConstants-13"><span class="linenos">13</span></a>	<span class="n">BASE_STAMINA_REGEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>	
-</span><span id="GameConstants-14"><a href="#GameConstants-14"><span class="linenos">14</span></a>	<span class="n">ADJACENT_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>	
-</span><span id="GameConstants-15"><a href="#GameConstants-15"><span class="linenos">15</span></a>	<span class="n">ADJACENCY_RADIUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>	
-</span><span id="GameConstants-16"><a href="#GameConstants-16"><span class="linenos">16</span></a>	<span class="n">BEACON_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span id="GameConstants-17"><a href="#GameConstants-17"><span class="linenos">17</span></a>	
-</span><span id="GameConstants-18"><a href="#GameConstants-18"><span class="linenos">18</span></a>	<span class="n">EXTRA_MOVE_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span id="GameConstants-19"><a href="#GameConstants-19"><span class="linenos">19</span></a>	<span class="n">ERASE_STEP_EXTRA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span id="GameConstants-20"><a href="#GameConstants-20"><span class="linenos">20</span></a>	<span class="n">BEACON_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>
-</span><span id="GameConstants-21"><a href="#GameConstants-21"><span class="linenos">21</span></a>	<span class="n">BEACON_REQUIREMENT_Q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span id="GameConstants-22"><a href="#GameConstants-22"><span class="linenos">22</span></a>	<span class="n">BEACON_WINDOW_SIZE_P</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
-</span><span id="GameConstants-23"><a href="#GameConstants-23"><span class="linenos">23</span></a>	<span class="n">BEACON_CONSUME_LEFTOVER_PAINT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="GameConstants-24"><a href="#GameConstants-24"><span class="linenos">24</span></a>
-</span><span id="GameConstants-25"><a href="#GameConstants-25"><span class="linenos">25</span></a>	<span class="n">MAX_PAINT_VALUE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span id="GameConstants-26"><a href="#GameConstants-26"><span class="linenos">26</span></a>	<span class="n">PAINT_STAMINA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
-</span><span id="GameConstants-27"><a href="#GameConstants-27"><span class="linenos">27</span></a>	<span class="n">PAINT_RANGE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="GameConstants-28"><a href="#GameConstants-28"><span class="linenos">28</span></a>	<span class="n">HILL_CONTROL_THRESHOLD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.33</span>
-</span><span id="GameConstants-29"><a href="#GameConstants-29"><span class="linenos">29</span></a>	<span class="n">BID_MAX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="GameConstants-30"><a href="#GameConstants-30"><span class="linenos">30</span></a>	<span class="n">CONSTRUCT_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
-</span><span id="GameConstants-31"><a href="#GameConstants-31"><span class="linenos">31</span></a>	<span class="n">BID_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
-</span><span id="GameConstants-32"><a href="#GameConstants-32"><span class="linenos">32</span></a>	<span class="n">PLAY_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span>
-</span><span id="GameConstants-33"><a href="#GameConstants-33"><span class="linenos">33</span></a>	<span class="n">COMMENTATE_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
-</span><span id="GameConstants-34"><a href="#GameConstants-34"><span class="linenos">34</span></a>
-</span><span id="GameConstants-35"><a href="#GameConstants-35"><span class="linenos">35</span></a>	<span class="n">TIME_TIEBREAK_THRESH</span> <span class="o">=</span> <span class="mi">5</span>
-</span><span id="GameConstants-36"><a href="#GameConstants-36"><span class="linenos">36</span></a>	<span class="n">DOMINATION_WIN_THRESHOLD</span> <span class="o">=</span> <span class="mf">.75</span>
-</span><span id="GameConstants-37"><a href="#GameConstants-37"><span class="linenos">37</span></a>
-</span><span id="GameConstants-38"><a href="#GameConstants-38"><span class="linenos">38</span></a>	<span class="n">ALLOW_DIAGONAL_MOVES</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="GameConstants-14"><a href="#GameConstants-14"><span class="linenos">14</span></a>	<span class="n">ADJACENT_REGEN_BONUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>	
+</span><span id="GameConstants-15"><a href="#GameConstants-15"><span class="linenos">15</span></a>	<span class="n">ADJACENCY_RADIUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>	
+</span><span id="GameConstants-16"><a href="#GameConstants-16"><span class="linenos">16</span></a>	<span class="n">GLOBAL_PAINT_REGEN_RATIO</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="GameConstants-17"><a href="#GameConstants-17"><span class="linenos">17</span></a>	<span class="n">GLOBAL_PAINT_REGEN_CAP</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="GameConstants-18"><a href="#GameConstants-18"><span class="linenos">18</span></a>	<span class="c1"># BEACON_REGEN_BONUS: int = 0</span>
+</span><span id="GameConstants-19"><a href="#GameConstants-19"><span class="linenos">19</span></a>	
+</span><span id="GameConstants-20"><a href="#GameConstants-20"><span class="linenos">20</span></a>	<span class="n">EXTRA_MOVE_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span id="GameConstants-21"><a href="#GameConstants-21"><span class="linenos">21</span></a>	<span class="n">ERASE_STEP_EXTRA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+</span><span id="GameConstants-22"><a href="#GameConstants-22"><span class="linenos">22</span></a>	<span class="n">BEACON_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="GameConstants-23"><a href="#GameConstants-23"><span class="linenos">23</span></a>	<span class="n">BEACON_REQUIREMENT_Q</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+</span><span id="GameConstants-24"><a href="#GameConstants-24"><span class="linenos">24</span></a>	<span class="n">BEACON_WINDOW_SIZE_P</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span id="GameConstants-25"><a href="#GameConstants-25"><span class="linenos">25</span></a>	<span class="n">BEACON_CONSUME_LEFTOVER_PAINT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="GameConstants-26"><a href="#GameConstants-26"><span class="linenos">26</span></a>
+</span><span id="GameConstants-27"><a href="#GameConstants-27"><span class="linenos">27</span></a>	<span class="n">MAX_PAINT_VALUE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+</span><span id="GameConstants-28"><a href="#GameConstants-28"><span class="linenos">28</span></a>	<span class="n">PAINT_STAMINA_COST</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">15</span>
+</span><span id="GameConstants-29"><a href="#GameConstants-29"><span class="linenos">29</span></a>	<span class="n">PAINT_RANGE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="GameConstants-30"><a href="#GameConstants-30"><span class="linenos">30</span></a>	<span class="n">HILL_CONTROL_THRESHOLD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+</span><span id="GameConstants-31"><a href="#GameConstants-31"><span class="linenos">31</span></a>	<span class="n">BID_MAX</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+</span><span id="GameConstants-32"><a href="#GameConstants-32"><span class="linenos">32</span></a>	<span class="n">CONSTRUCT_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+</span><span id="GameConstants-33"><a href="#GameConstants-33"><span class="linenos">33</span></a>	<span class="n">BID_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
+</span><span id="GameConstants-34"><a href="#GameConstants-34"><span class="linenos">34</span></a>	<span class="n">PLAY_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">180.0</span>
+</span><span id="GameConstants-35"><a href="#GameConstants-35"><span class="linenos">35</span></a>	<span class="n">COMMENTATE_TIME_LIMIT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+</span><span id="GameConstants-36"><a href="#GameConstants-36"><span class="linenos">36</span></a>
+</span><span id="GameConstants-37"><a href="#GameConstants-37"><span class="linenos">37</span></a>	<span class="n">TIME_TIEBREAK_THRESH</span> <span class="o">=</span> <span class="mf">0.5</span>
+</span><span id="GameConstants-38"><a href="#GameConstants-38"><span class="linenos">38</span></a>	<span class="n">DOMINATION_WIN_THRESHOLD</span> <span class="o">=</span> <span class="mf">.75</span>
+</span><span id="GameConstants-39"><a href="#GameConstants-39"><span class="linenos">39</span></a>
+</span><span id="GameConstants-40"><a href="#GameConstants-40"><span class="linenos">40</span></a>	<span class="n">ALLOW_DIAGONAL_MOVES</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="GameConstants-41"><a href="#GameConstants-41"><span class="linenos">41</span></a>
+</span><span id="GameConstants-42"><a href="#GameConstants-42"><span class="linenos">42</span></a>	<span class="c1"># endgame / global regen decay settings</span>
+</span><span id="GameConstants-43"><a href="#GameConstants-43"><span class="linenos">43</span></a>	<span class="n">GLOBAL_DECAY_TURN_THRESHOLD</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
+</span><span id="GameConstants-44"><a href="#GameConstants-44"><span class="linenos">44</span></a>	<span class="n">GLOBAL_DECAY_INTERVAL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+</span><span id="GameConstants-45"><a href="#GameConstants-45"><span class="linenos">45</span></a>	<span class="n">GLOBAL_DECAY_REGEN_PENALTY</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># amount subtracted from base regen each interval</span>
 </span></pre></div>
 
 
@@ -309,7 +335,7 @@
                             <div id="GameConstants.ADJACENT_REGEN_BONUS" class="classattr">
                                 <div class="attr variable">
             <span class="name">ADJACENT_REGEN_BONUS</span><span class="annotation">: int</span>        =
-<span class="default_value">1</span>
+<span class="default_value">2</span>
 
         
     </div>
@@ -321,7 +347,7 @@
                             <div id="GameConstants.ADJACENCY_RADIUS" class="classattr">
                                 <div class="attr variable">
             <span class="name">ADJACENCY_RADIUS</span><span class="annotation">: int</span>        =
-<span class="default_value">1</span>
+<span class="default_value">2</span>
 
         
     </div>
@@ -330,14 +356,26 @@
     
 
                             </div>
-                            <div id="GameConstants.BEACON_REGEN_BONUS" class="classattr">
+                            <div id="GameConstants.GLOBAL_PAINT_REGEN_RATIO" class="classattr">
                                 <div class="attr variable">
-            <span class="name">BEACON_REGEN_BONUS</span><span class="annotation">: int</span>        =
-<span class="default_value">3</span>
+            <span class="name">GLOBAL_PAINT_REGEN_RATIO</span><span class="annotation">: int</span>        =
+<span class="default_value">8</span>
 
         
     </div>
-    <a class="headerlink" href="#GameConstants.BEACON_REGEN_BONUS"></a>
+    <a class="headerlink" href="#GameConstants.GLOBAL_PAINT_REGEN_RATIO"></a>
+    
+    
+
+                            </div>
+                            <div id="GameConstants.GLOBAL_PAINT_REGEN_CAP" class="classattr">
+                                <div class="attr variable">
+            <span class="name">GLOBAL_PAINT_REGEN_CAP</span>        =
+<span class="default_value">50</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GameConstants.GLOBAL_PAINT_REGEN_CAP"></a>
     
     
 
@@ -357,7 +395,7 @@
                             <div id="GameConstants.ERASE_STEP_EXTRA_COST" class="classattr">
                                 <div class="attr variable">
             <span class="name">ERASE_STEP_EXTRA_COST</span><span class="annotation">: int</span>        =
-<span class="default_value">15</span>
+<span class="default_value">40</span>
 
         
     </div>
@@ -369,7 +407,7 @@
                             <div id="GameConstants.BEACON_COST" class="classattr">
                                 <div class="attr variable">
             <span class="name">BEACON_COST</span><span class="annotation">: int</span>        =
-<span class="default_value">25</span>
+<span class="default_value">0</span>
 
         
     </div>
@@ -381,7 +419,7 @@
                             <div id="GameConstants.BEACON_REQUIREMENT_Q" class="classattr">
                                 <div class="attr variable">
             <span class="name">BEACON_REQUIREMENT_Q</span><span class="annotation">: int</span>        =
-<span class="default_value">15</span>
+<span class="default_value">6</span>
 
         
     </div>
@@ -393,7 +431,7 @@
                             <div id="GameConstants.BEACON_WINDOW_SIZE_P" class="classattr">
                                 <div class="attr variable">
             <span class="name">BEACON_WINDOW_SIZE_P</span><span class="annotation">: int</span>        =
-<span class="default_value">5</span>
+<span class="default_value">3</span>
 
         
     </div>
@@ -417,7 +455,7 @@
                             <div id="GameConstants.MAX_PAINT_VALUE" class="classattr">
                                 <div class="attr variable">
             <span class="name">MAX_PAINT_VALUE</span><span class="annotation">: int</span>        =
-<span class="default_value">3</span>
+<span class="default_value">4</span>
 
         
     </div>
@@ -429,7 +467,7 @@
                             <div id="GameConstants.PAINT_STAMINA_COST" class="classattr">
                                 <div class="attr variable">
             <span class="name">PAINT_STAMINA_COST</span><span class="annotation">: int</span>        =
-<span class="default_value">8</span>
+<span class="default_value">15</span>
 
         
     </div>
@@ -453,7 +491,7 @@
                             <div id="GameConstants.HILL_CONTROL_THRESHOLD" class="classattr">
                                 <div class="attr variable">
             <span class="name">HILL_CONTROL_THRESHOLD</span><span class="annotation">: float</span>        =
-<span class="default_value">0.33</span>
+<span class="default_value">0.5</span>
 
         
     </div>
@@ -465,7 +503,7 @@
                             <div id="GameConstants.BID_MAX" class="classattr">
                                 <div class="attr variable">
             <span class="name">BID_MAX</span><span class="annotation">: int</span>        =
-<span class="default_value">50</span>
+<span class="default_value">100</span>
 
         
     </div>
@@ -501,7 +539,7 @@
                             <div id="GameConstants.PLAY_TIME_LIMIT" class="classattr">
                                 <div class="attr variable">
             <span class="name">PLAY_TIME_LIMIT</span><span class="annotation">: float</span>        =
-<span class="default_value">300.0</span>
+<span class="default_value">180.0</span>
 
         
     </div>
@@ -525,7 +563,7 @@
                             <div id="GameConstants.TIME_TIEBREAK_THRESH" class="classattr">
                                 <div class="attr variable">
             <span class="name">TIME_TIEBREAK_THRESH</span>        =
-<span class="default_value">5</span>
+<span class="default_value">0.5</span>
 
         
     </div>
@@ -549,11 +587,47 @@
                             <div id="GameConstants.ALLOW_DIAGONAL_MOVES" class="classattr">
                                 <div class="attr variable">
             <span class="name">ALLOW_DIAGONAL_MOVES</span><span class="annotation">: bool</span>        =
-<span class="default_value">True</span>
+<span class="default_value">False</span>
 
         
     </div>
     <a class="headerlink" href="#GameConstants.ALLOW_DIAGONAL_MOVES"></a>
+    
+    
+
+                            </div>
+                            <div id="GameConstants.GLOBAL_DECAY_TURN_THRESHOLD" class="classattr">
+                                <div class="attr variable">
+            <span class="name">GLOBAL_DECAY_TURN_THRESHOLD</span><span class="annotation">: int</span>        =
+<span class="default_value">1000</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GameConstants.GLOBAL_DECAY_TURN_THRESHOLD"></a>
+    
+    
+
+                            </div>
+                            <div id="GameConstants.GLOBAL_DECAY_INTERVAL" class="classattr">
+                                <div class="attr variable">
+            <span class="name">GLOBAL_DECAY_INTERVAL</span><span class="annotation">: int</span>        =
+<span class="default_value">100</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GameConstants.GLOBAL_DECAY_INTERVAL"></a>
+    
+    
+
+                            </div>
+                            <div id="GameConstants.GLOBAL_DECAY_REGEN_PENALTY" class="classattr">
+                                <div class="attr variable">
+            <span class="name">GLOBAL_DECAY_REGEN_PENALTY</span><span class="annotation">: int</span>        =
+<span class="default_value">3</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GameConstants.GLOBAL_DECAY_REGEN_PENALTY"></a>
     
     
 

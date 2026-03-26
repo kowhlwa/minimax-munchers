@@ -133,25 +133,7 @@
                                 <a class="variable" href="#Direction.RIGHT">RIGHT</a>
                         </li>
                         <li>
-                                <a class="variable" href="#Direction.UP_LEFT">UP_LEFT</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Direction.UP_RIGHT">UP_RIGHT</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Direction.DOWN_LEFT">DOWN_LEFT</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#Direction.DOWN_RIGHT">DOWN_RIGHT</a>
-                        </li>
-                        <li>
                                 <a class="function" href="#Direction.cardinals">cardinals</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Direction.diagonals">diagonals</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Direction.cardinals_and_diagonals">cardinals_and_diagonals</a>
                         </li>
                 </ul>
 
@@ -272,73 +254,44 @@
 </span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Location&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Location&quot;</span><span class="p">:</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="k">return</span> <span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">()</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="k">if</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="c1"># TODO: full diagonal pathing (?)</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>            <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals_and_diagonals</span><span class="p">()</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">directions</span><span class="p">:</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="k">return</span> <span class="n">cells</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">():</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="k">return</span> <span class="n">cells</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Location(r=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">}</span><span class="s2">, c=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="si">}</span><span class="s2">)&quot;</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Location(r=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">}</span><span class="s2">, c=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Location</span><span class="p">):</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>	
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum representing different directions away from center.&quot;&quot;&quot;</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="n">UP</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="n">DOWN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="n">LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="n">UP_LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">UP_RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="n">DOWN_LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">DOWN_RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="p">)</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span> <span class="c1">#TODO: check pathing</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>        <span class="p">)</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals_and_diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>        <span class="p">)</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Location</span><span class="p">):</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>	
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum representing different directions away from center.&quot;&quot;&quot;</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="n">UP</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="n">DOWN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="n">LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="n">RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">return</span> <span class="p">(</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
@@ -771,30 +724,27 @@ or target when using a BEACON_TRAVEL move.</p>
 </span><span id="Location-94"><a href="#Location-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Location&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Location&quot;</span><span class="p">:</span>
 </span><span id="Location-95"><a href="#Location-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
 </span><span id="Location-96"><a href="#Location-96"><span class="linenos"> 96</span></a>    
-</span><span id="Location-97"><a href="#Location-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="Location-98"><a href="#Location-98"><span class="linenos"> 98</span></a>        <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">()</span>
-</span><span id="Location-99"><a href="#Location-99"><span class="linenos"> 99</span></a>        <span class="k">if</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="c1"># TODO: full diagonal pathing (?)</span>
-</span><span id="Location-100"><a href="#Location-100"><span class="linenos">100</span></a>            <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals_and_diagonals</span><span class="p">()</span>
-</span><span id="Location-101"><a href="#Location-101"><span class="linenos">101</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">directions</span><span class="p">:</span>
-</span><span id="Location-102"><a href="#Location-102"><span class="linenos">102</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
-</span><span id="Location-103"><a href="#Location-103"><span class="linenos">103</span></a>    
-</span><span id="Location-104"><a href="#Location-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="Location-105"><a href="#Location-105"><span class="linenos">105</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Location-106"><a href="#Location-106"><span class="linenos">106</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="Location-107"><a href="#Location-107"><span class="linenos">107</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="Location-108"><a href="#Location-108"><span class="linenos">108</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
-</span><span id="Location-109"><a href="#Location-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="n">cells</span>
+</span><span id="Location-97"><a href="#Location-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="Location-98"><a href="#Location-98"><span class="linenos"> 98</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">():</span>
+</span><span id="Location-99"><a href="#Location-99"><span class="linenos"> 99</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
+</span><span id="Location-100"><a href="#Location-100"><span class="linenos">100</span></a>    
+</span><span id="Location-101"><a href="#Location-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="Location-102"><a href="#Location-102"><span class="linenos">102</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Location-103"><a href="#Location-103"><span class="linenos">103</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="Location-104"><a href="#Location-104"><span class="linenos">104</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="Location-105"><a href="#Location-105"><span class="linenos">105</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
+</span><span id="Location-106"><a href="#Location-106"><span class="linenos">106</span></a>        <span class="k">return</span> <span class="n">cells</span>
+</span><span id="Location-107"><a href="#Location-107"><span class="linenos">107</span></a>    
+</span><span id="Location-108"><a href="#Location-108"><span class="linenos">108</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Location-109"><a href="#Location-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Location(r=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">}</span><span class="s2">, c=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="si">}</span><span class="s2">)&quot;</span>
 </span><span id="Location-110"><a href="#Location-110"><span class="linenos">110</span></a>    
-</span><span id="Location-111"><a href="#Location-111"><span class="linenos">111</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Location-112"><a href="#Location-112"><span class="linenos">112</span></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Location(r=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="si">}</span><span class="s2">, c=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="si">}</span><span class="s2">)&quot;</span>
+</span><span id="Location-111"><a href="#Location-111"><span class="linenos">111</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Location-112"><a href="#Location-112"><span class="linenos">112</span></a>        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span>
 </span><span id="Location-113"><a href="#Location-113"><span class="linenos">113</span></a>    
-</span><span id="Location-114"><a href="#Location-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="Location-115"><a href="#Location-115"><span class="linenos">115</span></a>        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span>
-</span><span id="Location-116"><a href="#Location-116"><span class="linenos">116</span></a>    
-</span><span id="Location-117"><a href="#Location-117"><span class="linenos">117</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="Location-118"><a href="#Location-118"><span class="linenos">118</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Location</span><span class="p">):</span>
-</span><span id="Location-119"><a href="#Location-119"><span class="linenos">119</span></a>            <span class="k">return</span> <span class="kc">False</span>
-</span><span id="Location-120"><a href="#Location-120"><span class="linenos">120</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span>
+</span><span id="Location-114"><a href="#Location-114"><span class="linenos">114</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="Location-115"><a href="#Location-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Location</span><span class="p">):</span>
+</span><span id="Location-116"><a href="#Location-116"><span class="linenos">116</span></a>            <span class="k">return</span> <span class="kc">False</span>
+</span><span id="Location-117"><a href="#Location-117"><span class="linenos">117</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">r</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">c</span>
 </span></pre></div>
 
 
@@ -841,18 +791,15 @@ or target when using a BEACON_TRAVEL move.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">neighbors</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span></span><span class="return-annotation">) -> <span class="n">Iterator</span><span class="p">[</span><span class="n"><a href="#Location">Location</a></span><span class="p">]</span>:</span></span>
+        <span class="name">neighbors</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></span><span class="return-annotation">) -> <span class="n">Iterator</span><span class="p">[</span><span class="n"><a href="#Location">Location</a></span><span class="p">]</span>:</span></span>
 
                 <label class="view-source-button" for="Location.neighbors-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#Location.neighbors"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Location.neighbors-97"><a href="#Location.neighbors-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="Location.neighbors-98"><a href="#Location.neighbors-98"><span class="linenos"> 98</span></a>        <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">()</span>
-</span><span id="Location.neighbors-99"><a href="#Location.neighbors-99"><span class="linenos"> 99</span></a>        <span class="k">if</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="c1"># TODO: full diagonal pathing (?)</span>
-</span><span id="Location.neighbors-100"><a href="#Location.neighbors-100"><span class="linenos">100</span></a>            <span class="n">directions</span> <span class="o">=</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals_and_diagonals</span><span class="p">()</span>
-</span><span id="Location.neighbors-101"><a href="#Location.neighbors-101"><span class="linenos">101</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">directions</span><span class="p">:</span>
-</span><span id="Location.neighbors-102"><a href="#Location.neighbors-102"><span class="linenos">102</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Location.neighbors-97"><a href="#Location.neighbors-97"><span class="linenos">97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allow_diagonals</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="Location.neighbors-98"><a href="#Location.neighbors-98"><span class="linenos">98</span></a>        <span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">Direction</span><span class="o">.</span><span class="n">cardinals</span><span class="p">():</span>
+</span><span id="Location.neighbors-99"><a href="#Location.neighbors-99"><span class="linenos">99</span></a>            <span class="k">yield</span> <span class="bp">self</span> <span class="o">+</span> <span class="n">direction</span>
 </span></pre></div>
 
 
@@ -870,12 +817,12 @@ or target when using a BEACON_TRAVEL move.</p>
 
     </div>
     <a class="headerlink" href="#Location.square_region"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Location.square_region-104"><a href="#Location.square_region-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
-</span><span id="Location.square_region-105"><a href="#Location.square_region-105"><span class="linenos">105</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Location.square_region-106"><a href="#Location.square_region-106"><span class="linenos">106</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="Location.square_region-107"><a href="#Location.square_region-107"><span class="linenos">107</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-</span><span id="Location.square_region-108"><a href="#Location.square_region-108"><span class="linenos">108</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
-</span><span id="Location.square_region-109"><a href="#Location.square_region-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="n">cells</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Location.square_region-101"><a href="#Location.square_region-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">square_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Location&quot;</span><span class="p">]:</span>
+</span><span id="Location.square_region-102"><a href="#Location.square_region-102"><span class="linenos">102</span></a>        <span class="n">cells</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Location</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Location.square_region-103"><a href="#Location.square_region-103"><span class="linenos">103</span></a>        <span class="k">for</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="Location.square_region-104"><a href="#Location.square_region-104"><span class="linenos">104</span></a>            <span class="k">for</span> <span class="n">dc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="Location.square_region-105"><a href="#Location.square_region-105"><span class="linenos">105</span></a>                <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Location</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">+</span> <span class="n">dc</span><span class="p">))</span>
+</span><span id="Location.square_region-106"><a href="#Location.square_region-106"><span class="linenos">106</span></a>        <span class="k">return</span> <span class="n">cells</span>
 </span></pre></div>
 
 
@@ -894,47 +841,21 @@ or target when using a BEACON_TRAVEL move.</p>
 
     </div>
     <a class="headerlink" href="#Direction"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction-123"><a href="#Direction-123"><span class="linenos">123</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>	
-</span><span id="Direction-124"><a href="#Direction-124"><span class="linenos">124</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum representing different directions away from center.&quot;&quot;&quot;</span>
-</span><span id="Direction-125"><a href="#Direction-125"><span class="linenos">125</span></a>    <span class="n">UP</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="Direction-126"><a href="#Direction-126"><span class="linenos">126</span></a>    <span class="n">DOWN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span id="Direction-127"><a href="#Direction-127"><span class="linenos">127</span></a>    <span class="n">LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-128"><a href="#Direction-128"><span class="linenos">128</span></a>    <span class="n">RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-129"><a href="#Direction-129"><span class="linenos">129</span></a>    <span class="n">UP_LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-130"><a href="#Direction-130"><span class="linenos">130</span></a>    <span class="n">UP_RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-131"><a href="#Direction-131"><span class="linenos">131</span></a>    <span class="n">DOWN_LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-132"><a href="#Direction-132"><span class="linenos">132</span></a>    <span class="n">DOWN_RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="Direction-133"><a href="#Direction-133"><span class="linenos">133</span></a>    
-</span><span id="Direction-134"><a href="#Direction-134"><span class="linenos">134</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction-135"><a href="#Direction-135"><span class="linenos">135</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="Direction-136"><a href="#Direction-136"><span class="linenos">136</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction-137"><a href="#Direction-137"><span class="linenos">137</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="Direction-138"><a href="#Direction-138"><span class="linenos">138</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="Direction-139"><a href="#Direction-139"><span class="linenos">139</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="Direction-140"><a href="#Direction-140"><span class="linenos">140</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="Direction-141"><a href="#Direction-141"><span class="linenos">141</span></a>        <span class="p">)</span>
-</span><span id="Direction-142"><a href="#Direction-142"><span class="linenos">142</span></a>    
-</span><span id="Direction-143"><a href="#Direction-143"><span class="linenos">143</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction-144"><a href="#Direction-144"><span class="linenos">144</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span> <span class="c1">#TODO: check pathing</span>
-</span><span id="Direction-145"><a href="#Direction-145"><span class="linenos">145</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction-146"><a href="#Direction-146"><span class="linenos">146</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="Direction-147"><a href="#Direction-147"><span class="linenos">147</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="Direction-148"><a href="#Direction-148"><span class="linenos">148</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="Direction-149"><a href="#Direction-149"><span class="linenos">149</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="Direction-150"><a href="#Direction-150"><span class="linenos">150</span></a>        <span class="p">)</span>
-</span><span id="Direction-151"><a href="#Direction-151"><span class="linenos">151</span></a>    
-</span><span id="Direction-152"><a href="#Direction-152"><span class="linenos">152</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction-153"><a href="#Direction-153"><span class="linenos">153</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals_and_diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="Direction-154"><a href="#Direction-154"><span class="linenos">154</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction-155"><a href="#Direction-155"><span class="linenos">155</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="Direction-156"><a href="#Direction-156"><span class="linenos">156</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="Direction-157"><a href="#Direction-157"><span class="linenos">157</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="Direction-158"><a href="#Direction-158"><span class="linenos">158</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="Direction-159"><a href="#Direction-159"><span class="linenos">159</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="Direction-160"><a href="#Direction-160"><span class="linenos">160</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="Direction-161"><a href="#Direction-161"><span class="linenos">161</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="Direction-162"><a href="#Direction-162"><span class="linenos">162</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="Direction-163"><a href="#Direction-163"><span class="linenos">163</span></a>        <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction-120"><a href="#Direction-120"><span class="linenos">120</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Direction</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>	
+</span><span id="Direction-121"><a href="#Direction-121"><span class="linenos">121</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Enum representing different directions away from center.&quot;&quot;&quot;</span>
+</span><span id="Direction-122"><a href="#Direction-122"><span class="linenos">122</span></a>    <span class="n">UP</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="Direction-123"><a href="#Direction-123"><span class="linenos">123</span></a>    <span class="n">DOWN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span id="Direction-124"><a href="#Direction-124"><span class="linenos">124</span></a>    <span class="n">LEFT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Direction-125"><a href="#Direction-125"><span class="linenos">125</span></a>    <span class="n">RIGHT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="Direction-126"><a href="#Direction-126"><span class="linenos">126</span></a>    
+</span><span id="Direction-127"><a href="#Direction-127"><span class="linenos">127</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Direction-128"><a href="#Direction-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span id="Direction-129"><a href="#Direction-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="p">(</span>
+</span><span id="Direction-130"><a href="#Direction-130"><span class="linenos">130</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
+</span><span id="Direction-131"><a href="#Direction-131"><span class="linenos">131</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
+</span><span id="Direction-132"><a href="#Direction-132"><span class="linenos">132</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+</span><span id="Direction-133"><a href="#Direction-133"><span class="linenos">133</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
+</span><span id="Direction-134"><a href="#Direction-134"><span class="linenos">134</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
@@ -990,54 +911,6 @@ or target when using a BEACON_TRAVEL move.</p>
     
 
                             </div>
-                            <div id="Direction.UP_LEFT" class="classattr">
-                                <div class="attr variable">
-            <span class="name">UP_LEFT</span>        =
-<span class="default_value">&lt;<a href="#Direction.UP_LEFT">Direction.UP_LEFT</a>: (-1, -1)&gt;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Direction.UP_LEFT"></a>
-    
-    
-
-                            </div>
-                            <div id="Direction.UP_RIGHT" class="classattr">
-                                <div class="attr variable">
-            <span class="name">UP_RIGHT</span>        =
-<span class="default_value">&lt;<a href="#Direction.UP_RIGHT">Direction.UP_RIGHT</a>: (-1, 1)&gt;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Direction.UP_RIGHT"></a>
-    
-    
-
-                            </div>
-                            <div id="Direction.DOWN_LEFT" class="classattr">
-                                <div class="attr variable">
-            <span class="name">DOWN_LEFT</span>        =
-<span class="default_value">&lt;<a href="#Direction.DOWN_LEFT">Direction.DOWN_LEFT</a>: (1, -1)&gt;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Direction.DOWN_LEFT"></a>
-    
-    
-
-                            </div>
-                            <div id="Direction.DOWN_RIGHT" class="classattr">
-                                <div class="attr variable">
-            <span class="name">DOWN_RIGHT</span>        =
-<span class="default_value">&lt;<a href="#Direction.DOWN_RIGHT">Direction.DOWN_RIGHT</a>: (1, 1)&gt;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#Direction.DOWN_RIGHT"></a>
-    
-    
-
-                            </div>
                             <div id="Direction.cardinals" class="classattr">
                                         <input id="Direction.cardinals-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -1050,70 +923,14 @@ or target when using a BEACON_TRAVEL move.</p>
 
     </div>
     <a class="headerlink" href="#Direction.cardinals"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction.cardinals-134"><a href="#Direction.cardinals-134"><span class="linenos">134</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction.cardinals-135"><a href="#Direction.cardinals-135"><span class="linenos">135</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="Direction.cardinals-136"><a href="#Direction.cardinals-136"><span class="linenos">136</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction.cardinals-137"><a href="#Direction.cardinals-137"><span class="linenos">137</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="Direction.cardinals-138"><a href="#Direction.cardinals-138"><span class="linenos">138</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="Direction.cardinals-139"><a href="#Direction.cardinals-139"><span class="linenos">139</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="Direction.cardinals-140"><a href="#Direction.cardinals-140"><span class="linenos">140</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="Direction.cardinals-141"><a href="#Direction.cardinals-141"><span class="linenos">141</span></a>        <span class="p">)</span>
-</span></pre></div>
-
-
-    
-
-                            </div>
-                            <div id="Direction.diagonals" class="classattr">
-                                        <input id="Direction.diagonals-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-                    <div class="decorator decorator-staticmethod">@staticmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">diagonals</span><span class="signature pdoc-code condensed">(<span class="return-annotation">) -> <span class="n">Tuple</span><span class="p">[</span><span class="n"><a href="#Direction">Direction</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
-
-                <label class="view-source-button" for="Direction.diagonals-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#Direction.diagonals"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction.diagonals-143"><a href="#Direction.diagonals-143"><span class="linenos">143</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction.diagonals-144"><a href="#Direction.diagonals-144"><span class="linenos">144</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span> <span class="c1">#TODO: check pathing</span>
-</span><span id="Direction.diagonals-145"><a href="#Direction.diagonals-145"><span class="linenos">145</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction.diagonals-146"><a href="#Direction.diagonals-146"><span class="linenos">146</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="Direction.diagonals-147"><a href="#Direction.diagonals-147"><span class="linenos">147</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="Direction.diagonals-148"><a href="#Direction.diagonals-148"><span class="linenos">148</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="Direction.diagonals-149"><a href="#Direction.diagonals-149"><span class="linenos">149</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="Direction.diagonals-150"><a href="#Direction.diagonals-150"><span class="linenos">150</span></a>        <span class="p">)</span>
-</span></pre></div>
-
-
-    
-
-                            </div>
-                            <div id="Direction.cardinals_and_diagonals" class="classattr">
-                                        <input id="Direction.cardinals_and_diagonals-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-                    <div class="decorator decorator-staticmethod">@staticmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">cardinals_and_diagonals</span><span class="signature pdoc-code condensed">(<span class="return-annotation">) -> <span class="n">Tuple</span><span class="p">[</span><span class="n"><a href="#Direction">Direction</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>:</span></span>
-
-                <label class="view-source-button" for="Direction.cardinals_and_diagonals-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#Direction.cardinals_and_diagonals"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction.cardinals_and_diagonals-152"><a href="#Direction.cardinals_and_diagonals-152"><span class="linenos">152</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Direction.cardinals_and_diagonals-153"><a href="#Direction.cardinals_and_diagonals-153"><span class="linenos">153</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals_and_diagonals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
-</span><span id="Direction.cardinals_and_diagonals-154"><a href="#Direction.cardinals_and_diagonals-154"><span class="linenos">154</span></a>        <span class="k">return</span> <span class="p">(</span>
-</span><span id="Direction.cardinals_and_diagonals-155"><a href="#Direction.cardinals_and_diagonals-155"><span class="linenos">155</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-156"><a href="#Direction.cardinals_and_diagonals-156"><span class="linenos">156</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-157"><a href="#Direction.cardinals_and_diagonals-157"><span class="linenos">157</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-158"><a href="#Direction.cardinals_and_diagonals-158"><span class="linenos">158</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-159"><a href="#Direction.cardinals_and_diagonals-159"><span class="linenos">159</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_LEFT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-160"><a href="#Direction.cardinals_and_diagonals-160"><span class="linenos">160</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP_RIGHT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-161"><a href="#Direction.cardinals_and_diagonals-161"><span class="linenos">161</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_LEFT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-162"><a href="#Direction.cardinals_and_diagonals-162"><span class="linenos">162</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN_RIGHT</span><span class="p">,</span>
-</span><span id="Direction.cardinals_and_diagonals-163"><a href="#Direction.cardinals_and_diagonals-163"><span class="linenos">163</span></a>        <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Direction.cardinals-127"><a href="#Direction.cardinals-127"><span class="linenos">127</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Direction.cardinals-128"><a href="#Direction.cardinals-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">cardinals</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;Direction&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+</span><span id="Direction.cardinals-129"><a href="#Direction.cardinals-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="p">(</span>
+</span><span id="Direction.cardinals-130"><a href="#Direction.cardinals-130"><span class="linenos">130</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">UP</span><span class="p">,</span>
+</span><span id="Direction.cardinals-131"><a href="#Direction.cardinals-131"><span class="linenos">131</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">DOWN</span><span class="p">,</span>
+</span><span id="Direction.cardinals-132"><a href="#Direction.cardinals-132"><span class="linenos">132</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
+</span><span id="Direction.cardinals-133"><a href="#Direction.cardinals-133"><span class="linenos">133</span></a>            <span class="n">Direction</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span>
+</span><span id="Direction.cardinals-134"><a href="#Direction.cardinals-134"><span class="linenos">134</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 

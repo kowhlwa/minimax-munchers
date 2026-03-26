@@ -30,7 +30,7 @@ class Parity:
                 - -1 if the value is negative
                 - 0 if the value is zero
         """
-        return 0 if value == 0 else value / abs(value)
+        return 0 if value == 0 else value // abs(value)
     
     @staticmethod
     def get_opponent_parity(parity: int) -> int:
@@ -88,29 +88,18 @@ class CellState:
         """
         Determine the effective owner of the cell.
 
-        Beacon ownership takes priority over paint ownership.
-
         Returns:
             int: 
                 - 1 if owned by Player 1
                 - -1 if owned by Player 2
                 - 0 if unowned
         """
-        if self.beacon_parity != 0:
-            return self.beacon_parity
         return Parity.parity_from_value(self.paint_value)
         
-    def clear_beacon(self, leftover_value:int =  1) -> None:
+    def clear_beacon(self) -> None:
         """
-        Remove the beacon from the cell and convert it into paint.
-
-        The paint parity is based on the former beacon's owner.
-
-        Args:
-            leftover_value (int): Magnitude of paint left behind after
-                clearing the beacon.
+        Remove the beacon from the cell.
         """
-        self.paint_value = self.beacon_parity * leftover_value
         self.beacon_parity = 0
         
     def set_beacon(self, player_parity: int) -> None:
@@ -126,7 +115,7 @@ class CellState:
         """
         Apply paint to the cell for a given player.
 
-        Paint can only be applied if there is no active beacon and the
+        Paint can if the
         cell is either unowned or already owned by the painting player.
         The paint value has a maximum maginitude specified in GameConstants.
 
@@ -135,7 +124,7 @@ class CellState:
             max_value (int): Maximum absolute value for paint strength.
         """
         if (
-            Parity.unowned(self.beacon_parity) and (Parity.unowned(self.paint_value) or Parity.owned(self.paint_value, player_parity))
+            Parity.unowned(self.paint_value) or Parity.owned(self.paint_value, player_parity)
         ):
             self.paint_value  = min(max(self.paint_value + player_parity, -max_value),  max_value)
 
@@ -143,20 +132,17 @@ class CellState:
         """
         Reduce the opponent's paint strength on this cell.
 
-        This can only occur if there is no active beacon and the cell
-        is currently owned by the opposing player. Occurs automatically after moving into a cell.
+        The cell is weakened if it is currently owned by the opposing player.
+        Occurs automatically after moving into a cell.
 
         Args:
             player_parity (int): Parity of the acting player.
         """
-        if (
-            Parity.unowned(self.beacon_parity) and Parity.owned(self.paint_value, Parity.get_opponent_parity(player_parity))
-        ):
+        if Parity.owned(self.paint_value, Parity.get_opponent_parity(player_parity)):
             self.paint_value += player_parity
     
     def erase(self) -> None:
-        if(Parity.unowned(self.beacon_parity)):
-            self.paint_value = 0
+        self.paint_value = 0
 
 @dataclass
 class Hill:
@@ -279,6 +265,7 @@ class Board:
             self.turn_count = 0
             self.event_pointer = 0
             self.parity_to_play = 0
+            self.moves_this_turn = 0
             
             self.p1 = Player(
                 parity=1, 
@@ -360,7 +347,7 @@ class Board:
         
         try:
             bid = int(bid)
-            return bid <= GameConstants.BASE_MAX_STAMINA
+            return bid <= GameConstants.BASE_MAX_STAMINA and bid >= 0 
         except:
             return False
     
@@ -422,6 +409,7 @@ class Board:
         new_world.event_pointer = self.event_pointer
         new_world.turn_count = self.turn_count
         new_world.parity_to_play = self.parity_to_play
+        new_world.moves_this_turn = self.moves_this_turn
         
         new_world.p1 = self.p1.get_copy()
         new_world.p2 = self.p2.get_copy()
@@ -438,7 +426,7 @@ class Board:
         
         # hill cells are copied by reference since they don't change between hills
         # reregistering hills is unnecessary because target hill_ids were set when copying cells
-        new_world.hills = {hid: Hill(h.id, h.cells, h.control_positive, h.control_negative) for hid, h in self.hills.items()}
+        new_world.hills = {hid: Hill(h.id, h.cells, h.control_positive, h.control_negative, h.controller_parity) for hid, h in self.hills.items()}
         
         return new_world
     
@@ -467,12 +455,11 @@ class Board:
                 action_iterable = [actions]
         
         # keeps track of the number of moves thave have already executed this turn
-        moves_this_turn = 0
+        self.moves_this_turn = 0
         for action in action_iterable:
             if isinstance(action, Action.Move):
-                if not self._execute_move(player_parity, action, moves_this_turn):
+                if not self._execute_move(player_parity, action):
                     return False
-                moves_this_turn += 1
             elif isinstance(action, Action.Paint):
                 if not self._execute_paint(player_parity, action):
                     return False
@@ -483,11 +470,14 @@ class Board:
                 return False
             
             if self.get_opponent(player_parity).is_dead():
-                return moves_this_turn > 0
-        
+                return True
+
+
+
+        ok = self.moves_this_turn > 0
         self.end_turn()
 
-        return moves_this_turn > 0
+        return ok
     
     def forecast_turn(self, player_parity: int, actions: Action | Iterable[Action]) -> Tuple["Board", bool]:
         """
@@ -504,42 +494,40 @@ class Board:
         ok = world_copy.apply_turn(player_parity, actions)
         return world_copy, ok
     
-    def apply_action(self, player_parity: int, action: Action.Move | Action.Paint, moves_this_turn: int = 0) -> bool:
+    def apply_action(self, player_parity: int, action: Action.Move | Action.Paint) -> bool:
         """
         Apply a single action for a player.
 
         Args:
             player_parity (int): Acting player's parity.
             action (Action): Action to execute.
-            moves_this_turn (int): Moves already taken this turn.
 
         Returns:
             bool: True if the action was successfully applied.
         """
         if isinstance(action, Action.Move):
-            return self._execute_move(player_parity, action, moves_this_turn)
+            return self._execute_move(player_parity, action)
         if isinstance(action, Action.Paint):
             return self._execute_paint(player_parity, action)
         return False
     
-    def forecast_action(self, player_parity: int, action: Action, moves_this_turn: int = 0) -> Tuple["Board", bool]:
+    def forecast_action(self, player_parity: int, action: Action) -> Tuple["Board", bool]:
         """
         Simulate a single action without mutating the board.
 
         Args:
             player_parity (int): Acting player's parity.
             action (Action): Action to simulate.
-            moves_this_turn (int): Moves already taken this turn.
 
         Returns:
             Tuple[Board, bool]: Copied board and success flag.
         """
         world_copy = self.get_copy()
-        ok = world_copy.apply_action(player_parity, action, moves_this_turn)
+        ok = world_copy.apply_action(player_parity, action)
         return world_copy, ok
     
     
-    def _execute_move(self, player_parity: int, move: Action.Move, moves_this_turn: int) -> bool:
+    def _execute_move(self, player_parity: int, move: Action.Move, moves_this_turn = None) -> bool:
         """
         Execute a movement action for a player.
 
@@ -549,7 +537,6 @@ class Board:
         Args:
             player_parity (int): Acting player's parity.
             move (Action.Move): Move action.
-            moves_this_turn (int): Number of moves already taken.
 
         Returns:
             bool: True if the move was successful.
@@ -557,9 +544,11 @@ class Board:
         player = self.get_player(player_parity)
         self._apply_powerup_if_present(player_parity, self.cells[player.loc.r][player.loc.c])
 
+        if(moves_this_turn is None):
+            moves_this_turn = self.moves_this_turn
+
         if moves_this_turn >= 1:
             cost = GameConstants.EXTRA_MOVE_COST * moves_this_turn
-            #cost = player.stamina < GameConstants.EXTRA_MOVE_COST * moves_this_turn <-this line seemed off
             if player.stamina < cost:
                 return False 
             player.stamina -= cost
@@ -586,15 +575,34 @@ class Board:
         if target_cell.is_wall:
             return False
 
+        player.loc = target_loc
+
         if self._resolve_collision(player_parity):
             return True
-
-        previous_loc = player.loc
-        player.loc = target_loc
+        
+        # Beacon decay: decrease paint by 1 layer when teleporting to a beacon
+        if move.move_type == MoveType.BEACON_TRAVEL:
+            prev_paint = target_cell.paint_value
+            if Parity.owned(prev_paint, target_cell.beacon_parity):
+                # Decrease paint value by 1 toward zero
+                target_cell.paint_value += -1 * target_cell.beacon_parity
+                
+                # Release square if paint reaches 0
+                if target_cell.paint_value == 0:
+                    original_parity = Parity.parity_from_value(prev_paint)
+                    self._release_square(target_cell, original_parity)
         
         # handle movement effects
         self._handle_erase_effects(player_parity, target_cell, move.move_type)
         self._apply_powerup_if_present(player_parity, target_cell)
+        
+        # Check if beacon should be destroyed after teleporting
+        if move.move_type == MoveType.BEACON_TRAVEL:
+            if target_cell.beacon_parity != 0:
+                # Destroy beacon if paint is 0 or contains enemy paint
+                if target_cell.paint_value == 0 or Parity.owned(target_cell.paint_value, Parity.get_opponent_parity(target_cell.beacon_parity)):
+                    target_cell.clear_beacon()
+        
         if move.place_beacon:
             ok = self._place_beacon(player_parity, target_loc)
             if not ok:
@@ -602,6 +610,8 @@ class Board:
 
         if not player.clamp_stamina():
             return False
+        
+        self.moves_this_turn += 1
         
         return True
     
@@ -634,9 +644,11 @@ class Board:
         if dest_cell.beacon_parity != player_parity:
             return None
         
-        # consume the beacon at the location you travel to TODO: do we want to allow choice of which beacon gets consumed? 
-        dest_cell.clear_beacon(GameConstants.BEACON_CONSUME_LEFTOVER_PAINT)
-        player.beacon_count = max(0, player.beacon_count - 1)
+        # Beacons aren't consumed anymore 
+        #dest_cell.clear_beacon(GameConstants.BEACON_CONSUME_LEFTOVER_PAINT)
+        #player.beacon_count = max(0, player.beacon_count - 1)
+
+        self.moves_this_turn = 0
 
         return dest
     
@@ -649,8 +661,6 @@ class Board:
             target_cell (CellState): Cell affected by the step.
             step_type (MoveType): Type of movement step.
         """
-        if(not Parity.unowned(target_cell.beacon_parity)):
-            return
         
         prev = target_cell.paint_value
         if step_type == MoveType.ERASE:
@@ -695,10 +705,10 @@ class Board:
             return False
         
         player = self.get_player(player_parity)
+        opponent_parity = Parity.get_opponent_parity(player_parity)
+
         cell = self.cells[origin.r][origin.c]
-        if cell.owner_parity != player_parity:
-            return False
-        if cell.beacon_parity != 0:
+        if cell.owner_parity == opponent_parity:
             return False
         if player.stamina < GameConstants.BEACON_COST:
             return False
@@ -707,20 +717,26 @@ class Board:
         window_cells = origin.square_region(window_radius)
         
         friendly_cells: List[CellState] = []
-        enemy_cells: List[CellState] = []
-        opponent_parity = Parity.get_opponent_parity(player_parity)
-
+        valid_cells_count = 0
+        
         for loc in window_cells:
             if self.oob(loc):
                 continue
             candidate = self.cells[loc.r][loc.c]
-            if(Parity.unowned(candidate.beacon_parity)):
-                if Parity.owned(candidate.paint_value, player_parity):
-                    friendly_cells.append(candidate)
-                elif Parity.owned(candidate.paint_value, opponent_parity):
-                    enemy_cells.append(candidate)
+            if candidate.is_wall:
+                continue
+            valid_cells_count += 1
+            if Parity.owned(candidate.paint_value, player_parity):
+                friendly_cells.append(candidate)
         
-        if len(friendly_cells) < GameConstants.BEACON_REQUIREMENT_Q:
+        # Calculate requirement based on constants (2/3 in this case)
+
+        # can beacon on 2
+        # if valid_cells_count < 3:
+        #     return False
+        
+        # use proportional calculation so no float
+        if len(friendly_cells) * (GameConstants.BEACON_WINDOW_SIZE_P ** 2) < GameConstants.BEACON_REQUIREMENT_Q * valid_cells_count:
             return False
         
         player.stamina -= GameConstants.BEACON_COST
@@ -730,17 +746,24 @@ class Board:
             if(candidate.paint_value == 0):
                 self._release_square(candidate, player_parity)
 
-        # add to opponent's cells in the same area
-        for candidate in enemy_cells:
-            candidate.paint_value = max(
-                -GameConstants.MAX_PAINT_VALUE,
-                min(GameConstants.MAX_PAINT_VALUE, candidate.paint_value + opponent_parity)
-            )
+
+        # function ends here if you are clearing a beacon
+        if cell.beacon_parity == opponent_parity:
+            cell.clear_beacon()
+            return True
         
-        cell.set_beacon(player_parity)
+        # painting the cell by increment always captures
+        if cell.owner_parity != player_parity:
+            self._claim_square(cell, player_parity)
+        
+        # this you are setting your own beacon   
+        cell.set_beacon(player_parity)  
+        cell.paint_value += math.ceil(len(friendly_cells) * 0.5) * player_parity
+        cell.paint_value = max(-GameConstants.MAX_PAINT_VALUE, min(GameConstants.MAX_PAINT_VALUE, cell.paint_value))
         player.beacon_count += 1
         
         
+
         return True
 
     
@@ -802,6 +825,8 @@ class Board:
             return False
         if cell.owner_parity != player_parity and cell.owner_parity != 0:
             return False
+        if cell.beacon_parity == player_parity:
+            return False
         
         player.stamina -= GameConstants.PAINT_STAMINA_COST
 
@@ -828,6 +853,7 @@ class Board:
         """
         self.turn_count += 1
         self.parity_to_play *= -1 
+        self.moves_this_turn = 0
         self.current_round = self.turn_count // 2
         self._spawn_scheduled_powerups()
         self._apply_regeneration(self.parity_to_play)
@@ -908,6 +934,12 @@ class Board:
             opponent = self.get_player(opponent_parity)
             opponent.gain_hill_control(hill.id)
             hill.controller_parity = opponent_parity
+
+            if( len(self.hills) > 0 and 
+                  len(opponent.controlled_hills) >= GameConstants.DOMINATION_WIN_THRESHOLD * len(self.hills)):
+                
+                owner = self.get_player(owner_parity)
+                owner.stamina = -1
     
     
     def _apply_regeneration(self, player_parity) -> None:
@@ -928,12 +960,12 @@ class Board:
         regen += self._count_adjacent_friendly(player_parity) * GameConstants.ADJACENT_REGEN_BONUS
         # if player.beacon_count > 0:
         #     regen += player.beacon_count * GameConstants.BEACON_REGEN_BONUS
-        regen += min(self.get_territory_count(1) // GameConstants.GLOBAL_PAINT_REGEN_RATIO,
+        regen += min(self.get_territory_count(player_parity) // GameConstants.GLOBAL_PAINT_REGEN_RATIO,
                       GameConstants.GLOBAL_PAINT_REGEN_CAP) 
 
-        if self.turn_count > GameConstants.GLOBAL_DECAY_TURN_THRESHOLD:
-            delta = self.turn_count - GameConstants.GLOBAL_DECAY_TURN_THRESHOLD - 1
-            intervals = (delta // GameConstants.GLOBAL_DECAY_INTERVAL) + 1
+        if self.turn_count >= GameConstants.GLOBAL_DECAY_TURN_THRESHOLD + 200:
+            delta = self.turn_count - (GameConstants.GLOBAL_DECAY_TURN_THRESHOLD + 200)
+            intervals = (delta // 200) + 1
             regen -= intervals * GameConstants.GLOBAL_DECAY_REGEN_PENALTY
             regen = max(0, regen)
 
@@ -1019,7 +1051,7 @@ class Board:
         """
         if self.p1.is_dead():
             if (len(self.hills) > 0 and 
-                len(self.p1.controlled_hills) >= GameConstants.DOMINATION_WIN_THRESHOLD * len(self.hills)):
+                len(self.p2.controlled_hills) >= GameConstants.DOMINATION_WIN_THRESHOLD * len(self.hills)):
                 return Result.PLAYER_2, WinReason.DOMINATION
             if self.p1.loc == self.p2.loc:
                 return Result.PLAYER_2, WinReason.COLLISION
@@ -1027,7 +1059,7 @@ class Board:
             return Result.PLAYER_2, WinReason.STAMINA_LOSS
         if self.p2.is_dead():
             if (len(self.hills) > 0 and 
-                len(self.p2.controlled_hills) >= GameConstants.DOMINATION_WIN_THRESHOLD * len(self.hills)):
+                len(self.p1.controlled_hills) >= GameConstants.DOMINATION_WIN_THRESHOLD * len(self.hills)):
                 return Result.PLAYER_1, WinReason.DOMINATION
             if self.p1.loc == self.p2.loc:
                 return Result.PLAYER_1, WinReason.COLLISION
